@@ -13,8 +13,8 @@ export async function Writing() {
   return (
     <Section id="writing">
       <SectionHeader
-        label="Notes"
-        title="Notes & learnings"
+        label="Blogs"
+        title="Blogs"
         description="Write-ups from building things — distributed systems, ML, and the low-level details worth remembering. Latest from dev.to."
       />
 

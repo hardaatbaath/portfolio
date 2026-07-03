@@ -108,9 +108,6 @@ export function Navigation() {
         <PaletteHint />
         <div className="my-5 h-px bg-border" />
         <SocialLinks />
-        <div className="mt-2 flex justify-end">
-          <ThemeToggle />
-        </div>
       </aside>
 
       {/* Mobile top bar */}

@@ -52,7 +52,7 @@ export const analytics = {
 export const nav = [
   { id: "overview", label: "Overview" },
   { id: "projects", label: "Projects" },
-  { id: "writing", label: "Notes" },
+  { id: "writing", label: "Blogs" },
   { id: "thinking", label: "Beyond Code" },
   { id: "reading", label: "Reading" },
   { id: "timeline", label: "Timeline" },

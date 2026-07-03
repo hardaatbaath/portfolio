@@ -22,19 +22,19 @@
   color-scheme: light;
 }
 
-/* ---- Dark theme (default) ---- */
+/* ---- Dark theme (default) — a shade lighter than pure charcoal ---- */
 .dark {
-  --background: #0f1115;
-  --surface: #181c22;
-  --elevated: #1f242c;
-  --border: #2a313a;
+  --background: #14161c;
+  --surface: #1b1f27;
+  --elevated: #242a34;
+  --border: #2e3541;
   --foreground: #f4f4f5;
-  --muted: #a1a1aa;
-  --accent: #4f8cff;
+  --muted: #a4a7b0;
+  --accent: #5b93ff;
   --accent-contrast: #0b1220;
   --success: #5fae7b;
 
-  --grid-line: rgba(255, 255, 255, 0.025);
+  --grid-line: rgba(255, 255, 255, 0.028);
   --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 6px 24px rgba(0, 0, 0, 0.28);
   --shadow-card-hover: 0 2px 6px rgba(0, 0, 0, 0.4), 0 12px 36px rgba(0, 0, 0, 0.4);
 
@@ -71,6 +71,7 @@
   }
 
   body {
+    position: relative;
     background-color: var(--background);
     color: var(--foreground);
     font-family: var(--font-sans);
@@ -83,27 +84,27 @@
     background-size: 32px 32px;
   }
 
-  /* Soft accent glow behind the top of the page (sits over the grid, under content) */
+  /* Soft multi-hue wash behind the top of the page. Absolute (not fixed) so it
+     belongs to the hero and scrolls away as you move down. */
   body::before {
     content: "";
-    position: fixed;
-    inset: 0;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 820px;
     z-index: -1;
     pointer-events: none;
     background:
-      radial-gradient(
-        70% 45% at 50% -5%,
-        color-mix(in oklab, var(--accent) 13%, transparent),
-        transparent 70%
-      );
+      radial-gradient(90% 70% at 12% -10%, rgba(139, 122, 255, 0.22), transparent 60%),
+      radial-gradient(85% 65% at 88% -8%, rgba(255, 138, 196, 0.14), transparent 58%),
+      radial-gradient(80% 60% at 50% -18%, rgba(91, 147, 255, 0.20), transparent 70%);
   }
   :root:not(.dark) body::before {
     background:
-      radial-gradient(
-        70% 45% at 50% -5%,
-        color-mix(in oklab, var(--accent) 8%, transparent),
-        transparent 70%
-      );
+      radial-gradient(90% 70% at 12% -10%, rgba(139, 122, 255, 0.20), transparent 60%),
+      radial-gradient(85% 65% at 88% -8%, rgba(255, 150, 200, 0.20), transparent 58%),
+      radial-gradient(80% 60% at 50% -18%, rgba(80, 130, 245, 0.12), transparent 70%);
   }
 
   h1, h2, h3, h4 {
@@ -148,6 +149,15 @@
 }
 
 @layer utilities {
+  /* Scroll without a visible scrollbar (used by the timeline track) */
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
   /* Consistent card surface used everywhere */
   .card {
     background-color: var(--surface);

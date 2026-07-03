@@ -5,6 +5,7 @@ import { identity } from "@/site.config";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Navigation } from "@/components/navigation";
 import { CommandPalette } from "@/components/command-palette";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { Analytics } from "@/components/analytics";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-geist", display: "swap" });
@@ -60,6 +61,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             Skip to content
           </a>
           <Navigation />
+          {/* Desktop theme toggle, top-right (mobile has it in the top bar) */}
+          <div className="fixed right-5 top-5 z-40 hidden rounded-full border border-border bg-surface/70 backdrop-blur lg:block">
+            <ThemeToggle />
+          </div>
           <CommandPalette />
           <div className="lg:pl-72">
             <main className="mx-auto max-w-4xl px-6 pt-20 md:px-10 lg:pt-0">

@@ -3,7 +3,7 @@ import { identity, socials } from "@/site.config";
 import { DevtoIcon, GithubIcon, LinkedinIcon, SubstackIcon, XIcon } from "./ui/brand-icons";
 
 const iconClass =
-  "inline-flex h-9 w-9 items-center justify-center rounded-lg text-muted transition-colors hover:bg-elevated hover:text-foreground focus-visible:text-foreground";
+  "inline-flex h-8 w-8 items-center justify-center rounded-lg text-muted transition-colors hover:bg-elevated hover:text-foreground focus-visible:text-foreground";
 
 /** Icon-only social row. Any link with an empty href is hidden automatically. */
 export function SocialLinks() {
@@ -18,7 +18,7 @@ export function SocialLinks() {
   ].filter((l) => l.href && !l.href.endsWith("mailto:"));
 
   return (
-    <nav aria-label="Social links" className="flex flex-wrap items-center gap-0.5">
+    <nav aria-label="Social links" className="flex items-center justify-between">
       {links.map(({ href, label, Icon, external }) => (
         <a
           key={label}
@@ -28,7 +28,7 @@ export function SocialLinks() {
           {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
           className={iconClass}
         >
-          <Icon className="h-[18px] w-[18px]" aria-hidden />
+          <Icon className="h-[17px] w-[17px]" aria-hidden />
         </a>
       ))}
     </nav>
