@@ -33,6 +33,8 @@ export const socials = {
   scholar:
     process.env.NEXT_PUBLIC_SCHOLAR_URL ??
     "https://scholar.google.com/citations?user=8xumNrgAAAAJ&hl=en",
+  // Leave TWITTER_URL empty to hide the X/Twitter icon entirely.
+  twitter: process.env.NEXT_PUBLIC_TWITTER_URL ?? "",
   devtoUsername: process.env.NEXT_PUBLIC_DEVTO_USERNAME ?? "hardaatbaath",
   devtoUrl: `https://dev.to/${process.env.NEXT_PUBLIC_DEVTO_USERNAME ?? "hardaatbaath"}`,
   substackUrl:
@@ -49,14 +51,16 @@ export const analytics = {
 // anchor. Order here === order on the page === order in the sidebar.
 export const nav = [
   { id: "overview", label: "Overview" },
-  { id: "building", label: "Building" },
   { id: "projects", label: "Projects" },
-  { id: "writing", label: "Writing" },
-  { id: "thinking", label: "Thinking" },
+  { id: "writing", label: "Notes" },
+  { id: "thinking", label: "Beyond Code" },
   { id: "reading", label: "Reading" },
   { id: "timeline", label: "Timeline" },
   { id: "contact", label: "Contact" },
 ] as const;
+
+// How many project cards to show before the "More on GitHub" link.
+export const featuredProjectCount = 4;
 
 // --- Types -------------------------------------------------------------------
 export type ProjectStatus = "Planning" | "Building" | "Testing" | "Research" | "Released" | "Archived";
@@ -69,21 +73,6 @@ export type Project = {
   github?: string;
   writeup?: string;
   demo?: string;
-};
-
-// --- Currently ---------------------------------------------------------------
-export const currently = {
-  building: [
-    { name: "Multimodal RAG", detail: "Low-latency multilingual retrieval @ Nurix", status: "Building" as ProjectStatus },
-    { name: "Speech Emotion Recognition", detail: "Multi-corpus SER in PyTorch", status: "Testing" as ProjectStatus },
-    { name: "LLM Analysis Pipelines", detail: "News + action-item generation", status: "Building" as ProjectStatus },
-  ],
-  learning: ["LLM Inference Optimization", "Multimodal Learning", "Distributed Systems", "Audio DSP", "CUDA"],
-  reading: [
-    "Designing Data-Intensive Applications",
-    "The Silent Patient",
-    "Thinking, Fast and Slow",
-  ],
 };
 
 // --- Featured projects (curated) --------------------------------------------
@@ -156,11 +145,17 @@ export const reading = {
 };
 
 // --- Timeline ----------------------------------------------------------------
-export const timeline = [
-  { year: "2023", title: "Research @ CSIR-CEERI", detail: "Deep-learning restoration of Rajasthani wall murals; paper accepted at CVIP." },
-  { year: "2024", title: "AI Engineer @ DG Takano", detail: "Automated a testing line in Tokyo; led Project Kratos to global rover challenges." },
-  { year: "2025", title: "ML Engineer @ Nurix.AI", detail: "Graduated BITS Pilani; building speech and RAG systems in Bangalore." },
-  { year: "Now", title: "What's next", detail: "Going deeper into multimodal ML and the systems that serve it." },
+// One entry per milestone, ordered oldest → newest. Scrolls horizontally, so
+// add as many as you like. `period` is free-form (single date or a range).
+export type TimelineEntry = { period: string; title: string; org: string; detail?: string };
+
+export const timeline: TimelineEntry[] = [
+  { period: "Nov 2021 – Jul 2025", title: "B.E. Computer Science", org: "BITS Pilani, Goa", detail: "Bachelor's in CS. Coursework across ML, OS, networks, and architecture." },
+  { period: "May 2023 – May 2024", title: "Autonomous Subsystem Lead", org: "Project Kratos", detail: "Led autonomous navigation for a student-built Mars rover." },
+  { period: "Jun 2023 – Aug 2023", title: "Research Intern", org: "CSIR-CEERI, Pilani", detail: "Deep-learning restoration of Rajasthani wall murals." },
+  { period: "Nov 2023", title: "Published at CVIP 2023", org: "Cultural-heritage restoration", detail: "First-author paper on damage segmentation & inpainting." },
+  { period: "May 2024 – Aug 2024", title: "AI Engineer", org: "DG Takano, Tokyo", detail: "Automated a hardware testing line with cloud logging." },
+  { period: "Jan 2025 – Present", title: "Machine Learning Engineer", org: "Nurix.AI, Bangalore", detail: "Speech emotion recognition and multilingual RAG systems." },
 ];
 
 // --- How many auto-fetched posts to show ------------------------------------

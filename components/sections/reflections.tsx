@@ -2,10 +2,10 @@ import { socials } from "@/site.config";
 import { getSubstackPosts } from "@/lib/posts";
 import { Section, SectionHeader } from "../ui/section";
 import { Reveal } from "../ui/reveal";
-import { Card } from "../ui/card";
 import { PostCard } from "../post-card";
-import { ExternalLink } from "../ui/external-link";
+import { EmptyFeed } from "../empty-feed";
 import { buttonVariants } from "../ui/button";
+import { PenLine } from "lucide-react";
 
 export async function Reflections() {
   const posts = await getSubstackPosts();
@@ -13,9 +13,9 @@ export async function Reflections() {
   return (
     <Section id="thinking">
       <SectionHeader
-        label="Thinking"
-        title="Reflections"
-        description="Less technical, more human — on learning, discipline, and the things I think about away from code. Latest from Substack."
+        label="Beyond Code"
+        title="Things that moved me"
+        description="Essays and half-formed thoughts — on learning, discipline, music, and the things I sit with away from the screen. Latest from Substack."
       />
 
       {posts.length > 0 ? (
@@ -34,18 +34,16 @@ export async function Reflections() {
               rel="noopener noreferrer"
               className={buttonVariants({ variant: "secondary" })}
             >
-              View all on Substack
+              More on Substack
             </a>
           </Reveal>
         </>
       ) : (
-        <Reveal>
-          <Card className="text-sm text-muted">
-            Reflections will appear here automatically once your Substack feed is
-            available. In the meantime, read them on{" "}
-            <ExternalLink href={socials.substackUrl}>Substack</ExternalLink>.
-          </Card>
-        </Reveal>
+        <EmptyFeed
+          source="Substack"
+          href={socials.substackUrl}
+          icon={<PenLine className="h-5 w-5" aria-hidden />}
+        />
       )}
     </Section>
   );

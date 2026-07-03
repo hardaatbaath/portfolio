@@ -1,5 +1,4 @@
 import { Hero } from "@/components/sections/hero";
-import { Currently } from "@/components/sections/currently";
 import { Projects } from "@/components/sections/projects";
 import { Writing } from "@/components/sections/writing";
 import { Reflections } from "@/components/sections/reflections";
@@ -15,7 +14,6 @@ export default function Home() {
   return (
     <>
       <Hero />
-      <Currently />
       <Projects />
       <Writing />
       <Reflections />

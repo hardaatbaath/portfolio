@@ -107,8 +107,8 @@ export function Navigation() {
         </nav>
         <PaletteHint />
         <div className="my-5 h-px bg-border" />
-        <div className="flex items-center justify-between">
-          <SocialLinks />
+        <SocialLinks />
+        <div className="mt-2 flex justify-end">
           <ThemeToggle />
         </div>
       </aside>

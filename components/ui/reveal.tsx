@@ -1,11 +1,13 @@
 "use client";
 
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
 import type { ReactNode } from "react";
 
 /**
- * Fade + slide-up on scroll into view. Once only. Honors prefers-reduced-motion
- * (renders statically). This is the ONLY entrance animation on the site.
+ * Fade + slide-up on scroll into view (once). Renders an identical tree on
+ * server and client to avoid hydration mismatches; reduced-motion is handled
+ * globally by <MotionConfig reducedMotion="user"> in the theme provider, which
+ * makes these animations resolve instantly for users who prefer less motion.
  */
 export function Reveal({
   children,
@@ -16,10 +18,6 @@ export function Reveal({
   delay?: number;
   className?: string;
 }) {
-  const reduce = useReducedMotion();
-
-  if (reduce) return <div className={className}>{children}</div>;
-
   return (
     <motion.div
       className={className}

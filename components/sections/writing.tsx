@@ -1,10 +1,10 @@
+import { DevtoIcon } from "../ui/brand-icons";
 import { socials } from "@/site.config";
 import { getDevtoPosts } from "@/lib/posts";
 import { Section, SectionHeader } from "../ui/section";
 import { Reveal } from "../ui/reveal";
-import { Card } from "../ui/card";
 import { PostCard } from "../post-card";
-import { ExternalLink } from "../ui/external-link";
+import { EmptyFeed } from "../empty-feed";
 import { buttonVariants } from "../ui/button";
 
 export async function Writing() {
@@ -13,9 +13,9 @@ export async function Writing() {
   return (
     <Section id="writing">
       <SectionHeader
-        label="Writing"
-        title="Technical writing"
-        description="Notes from building things — distributed systems, ML, and low-level programming. Latest from dev.to."
+        label="Notes"
+        title="Notes & learnings"
+        description="Write-ups from building things — distributed systems, ML, and the low-level details worth remembering. Latest from dev.to."
       />
 
       {posts.length > 0 ? (
@@ -34,18 +34,16 @@ export async function Writing() {
               rel="noopener noreferrer"
               className={buttonVariants({ variant: "secondary" })}
             >
-              View all articles
+              More on dev.to
             </a>
           </Reveal>
         </>
       ) : (
-        <Reveal>
-          <Card className="text-sm text-muted">
-            Articles will appear here automatically once your dev.to feed is
-            available. In the meantime, read them on{" "}
-            <ExternalLink href={socials.devtoUrl}>dev.to</ExternalLink>.
-          </Card>
-        </Reveal>
+        <EmptyFeed
+          source="dev.to"
+          href={socials.devtoUrl}
+          icon={<DevtoIcon className="h-5 w-5" aria-hidden />}
+        />
       )}
     </Section>
   );

@@ -3,10 +3,11 @@ import { Section } from "../ui/section";
 import { Reveal } from "../ui/reveal";
 import { buttonVariants } from "../ui/button";
 import { GithubIcon } from "../ui/brand-icons";
+import { ExternalLink } from "../ui/external-link";
 
 export function Hero() {
   return (
-    <Section id="overview" className="flex min-h-[85vh] flex-col justify-center py-0">
+    <Section id="overview" className="flex min-h-[82vh] flex-col justify-center py-0">
       <Reveal>
         <p className="mb-6 font-mono text-sm text-muted">
           <span className="text-accent">$</span> whoami
@@ -20,21 +21,32 @@ export function Hero() {
       </Reveal>
 
       <Reveal delay={0.1}>
-        <p className="mt-6 max-w-xl text-lg leading-relaxed text-muted md:text-xl">
-          {identity.tagline}
+        <p className="mt-6 max-w-2xl text-lg leading-relaxed text-muted md:text-xl">
+          I&apos;m a Machine Learning Engineer at{" "}
+          <ExternalLink href="https://nurix.ai" showIcon={false} className="font-medium">
+            Nurix.AI
+          </ExternalLink>
+          , building speech and multilingual RAG systems. Before that — deep-learning
+          research, an AI role in Tokyo, and leading autonomy on a{" "}
+          <ExternalLink
+            href="https://kratos-the-rover.github.io/"
+            showIcon={false}
+            className="font-medium"
+          >
+            student Mars rover
+          </ExternalLink>
+          .
         </p>
       </Reveal>
 
       <Reveal delay={0.15}>
-        <p className="mt-4 font-mono text-sm tracking-wide text-muted">
-          {identity.domains}
-        </p>
+        <p className="mt-5 font-mono text-sm tracking-wide text-muted">{identity.domains}</p>
       </Reveal>
 
       <Reveal delay={0.2}>
         <div className="mt-10 flex flex-wrap gap-3">
           <a href="#projects" className={buttonVariants({ variant: "primary" })}>
-            Projects
+            View work
           </a>
           <a
             href={identity.resumeUrl}

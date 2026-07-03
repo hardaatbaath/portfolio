@@ -1,37 +1,42 @@
 import { timeline } from "@/site.config";
 import { Section, SectionHeader } from "../ui/section";
 import { Reveal } from "../ui/reveal";
+import { Card } from "../ui/card";
 
 export function Timeline() {
   return (
     <Section id="timeline">
       <SectionHeader
         label="Timeline"
-        title="How I got here"
-        description="A few milestones, in order."
+        title="The path so far"
+        description="Roles, research, and milestones — scroll sideways to move through time."
       />
 
       <Reveal>
-        <ol className="relative grid grid-cols-1 gap-8 md:grid-cols-4 md:gap-4">
-          {/* Connecting line: vertical on mobile, horizontal on desktop */}
-          <span
-            aria-hidden
-            className="absolute left-[5px] top-2 bottom-2 w-px bg-border md:inset-x-0 md:top-[5px] md:bottom-auto md:h-px md:w-auto"
-          />
-          {timeline.map((node) => (
-            <li key={node.year} className="relative pl-8 md:pl-0 md:pt-8">
-              <span
-                aria-hidden
-                className="absolute left-0 top-1 h-3 w-3 rounded-full border-2 border-accent bg-background md:top-0"
-              />
-              <p className="font-mono text-sm text-accent">{node.year}</p>
-              <h3 className="mt-1 font-display text-base font-semibold text-foreground">
-                {node.title}
-              </h3>
-              <p className="mt-1 text-sm leading-relaxed text-muted">{node.detail}</p>
-            </li>
-          ))}
-        </ol>
+        {/* Full-bleed horizontal scroller so it reads like a track, not a grid */}
+        <div className="relative -mx-6 md:-mx-10">
+          <ol className="flex snap-x snap-mandatory gap-4 overflow-x-auto px-6 pb-4 md:px-10">
+            {timeline.map((node) => (
+              <li key={node.period + node.title} className="w-[270px] shrink-0 snap-start">
+                {/* dot + rail */}
+                <div className="mb-4 flex items-center gap-3">
+                  <span className="h-2.5 w-2.5 shrink-0 rounded-full border-2 border-accent bg-background" aria-hidden />
+                  <span className="h-px flex-1 bg-border" aria-hidden />
+                </div>
+                <Card className="h-full p-5">
+                  <p className="font-mono text-xs text-accent">{node.period}</p>
+                  <h3 className="mt-2 font-display text-base font-semibold leading-snug text-foreground">
+                    {node.title}
+                  </h3>
+                  <p className="mt-0.5 text-sm text-muted">{node.org}</p>
+                  {node.detail && (
+                    <p className="mt-3 text-sm leading-relaxed text-muted">{node.detail}</p>
+                  )}
+                </Card>
+              </li>
+            ))}
+          </ol>
+        </div>
       </Reveal>
     </Section>
   );

@@ -34,7 +34,7 @@ export function Reading() {
           <Shelf title="Technical" books={reading.technical} />
         </Reveal>
         <Reveal delay={0.05}>
-          <Shelf title="Humanities" books={reading.humanities} />
+          <Shelf title="Beyond Tech" books={reading.humanities} />
         </Reveal>
       </div>
     </Section>

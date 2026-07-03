@@ -1,22 +1,25 @@
-import { projects } from "@/site.config";
+import { featuredProjectCount, projects, socials } from "@/site.config";
 import { GithubIcon } from "../ui/brand-icons";
 import { Section, SectionHeader } from "../ui/section";
 import { Reveal } from "../ui/reveal";
 import { Card } from "../ui/card";
 import { StatusBadge, Tag } from "../ui/badge";
 import { ExternalLink } from "../ui/external-link";
+import { buttonVariants } from "../ui/button";
 
 export function Projects() {
+  const featured = projects.slice(0, featuredProjectCount);
+
   return (
     <Section id="projects">
       <SectionHeader
         label="Projects"
-        title="Things I'm building"
-        description="A selection of projects spanning AI, systems programming, and the layers in between."
+        title="Selected work"
+        description="A few things I've built across ML, robotics, and backend systems — from research to production."
       />
 
       <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-        {projects.map((project, i) => (
+        {featured.map((project, i) => (
           <Reveal key={project.title} delay={(i % 2) * 0.05}>
             <Card interactive className="flex h-full flex-col">
               <div className="flex items-start justify-between gap-3">
@@ -52,6 +55,18 @@ export function Projects() {
           </Reveal>
         ))}
       </div>
+
+      <Reveal className="mt-8">
+        <a
+          href={socials.github}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={buttonVariants({ variant: "secondary" })}
+        >
+          <GithubIcon className="h-4 w-4" aria-hidden />
+          More on GitHub
+        </a>
+      </Reveal>
     </Section>
   );
 }

@@ -1,17 +1,16 @@
 "use client";
 
-import {
-  ArrowRight,
-  FileText,
-  GraduationCap,
-  Mail,
-  Newspaper,
-  PenLine,
-} from "lucide-react";
+import { ArrowRight, FileText, GraduationCap, Mail } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { identity, nav, socials } from "@/site.config";
 import { cn } from "@/lib/utils";
-import { GithubIcon, LinkedinIcon } from "./ui/brand-icons";
+import {
+  DevtoIcon,
+  GithubIcon,
+  LinkedinIcon,
+  SubstackIcon,
+  XIcon,
+} from "./ui/brand-icons";
 
 export const OPEN_PALETTE_EVENT = "open-command-palette";
 
@@ -45,9 +44,12 @@ export function CommandPalette() {
     const links: Item[] = [
       { label: "GitHub", group: "Links", icon: <GithubIcon className="h-4 w-4" aria-hidden />, run: () => go(socials.github, true) },
       { label: "LinkedIn", group: "Links", icon: <LinkedinIcon className="h-4 w-4" aria-hidden />, run: () => go(socials.linkedin, true) },
+      ...(socials.twitter
+        ? [{ label: "X (Twitter)", group: "Links", keywords: "twitter", icon: <XIcon className="h-4 w-4" aria-hidden />, run: () => go(socials.twitter, true) }]
+        : []),
       { label: "Google Scholar", group: "Links", keywords: "research papers publications", icon: <GraduationCap className="h-4 w-4" aria-hidden />, run: () => go(socials.scholar, true) },
-      { label: "dev.to", group: "Links", keywords: "blog writing", icon: <Newspaper className="h-4 w-4" aria-hidden />, run: () => go(socials.devtoUrl, true) },
-      { label: "Substack", group: "Links", keywords: "reflections", icon: <PenLine className="h-4 w-4" aria-hidden />, run: () => go(socials.substackUrl, true) },
+      { label: "dev.to", group: "Links", keywords: "blog writing notes", icon: <DevtoIcon className="h-4 w-4" aria-hidden />, run: () => go(socials.devtoUrl, true) },
+      { label: "Substack", group: "Links", keywords: "reflections essays", icon: <SubstackIcon className="h-4 w-4" aria-hidden />, run: () => go(socials.substackUrl, true) },
       { label: "Résumé", group: "Links", keywords: "cv", icon: <FileText className="h-4 w-4" aria-hidden />, run: () => go(identity.resumeUrl, true) },
       { label: "Email me", group: "Links", keywords: "contact mail", icon: <Mail className="h-4 w-4" aria-hidden />, run: () => go(`mailto:${identity.email}`, true) },
     ];

@@ -83,6 +83,29 @@
     background-size: 32px 32px;
   }
 
+  /* Soft accent glow behind the top of the page (sits over the grid, under content) */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      radial-gradient(
+        70% 45% at 50% -5%,
+        color-mix(in oklab, var(--accent) 13%, transparent),
+        transparent 70%
+      );
+  }
+  :root:not(.dark) body::before {
+    background:
+      radial-gradient(
+        70% 45% at 50% -5%,
+        color-mix(in oklab, var(--accent) 8%, transparent),
+        transparent 70%
+      );
+  }
+
   h1, h2, h3, h4 {
     font-family: var(--font-display);
     letter-spacing: -0.02em;
