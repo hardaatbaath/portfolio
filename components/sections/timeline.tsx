@@ -15,7 +15,7 @@ export function Timeline() {
       <Reveal>
         {/* Full-bleed horizontal scroller so it reads like a track, not a grid */}
         <div className="relative -mx-6 md:-mx-10">
-          <ol className="no-scrollbar flex snap-x snap-mandatory gap-4 overflow-x-auto px-6 py-3 md:px-10">
+          <ol className="no-scrollbar flex snap-x snap-mandatory items-start gap-4 overflow-x-auto px-6 py-4 md:px-10">
             {timeline.map((node) => (
               <li key={node.period + node.title} className="w-[270px] shrink-0 snap-start">
                 {/* dot + rail */}
@@ -23,7 +23,7 @@ export function Timeline() {
                   <span className="h-2.5 w-2.5 shrink-0 rounded-full border-2 border-accent bg-background" aria-hidden />
                   <span className="h-px flex-1 bg-border" aria-hidden />
                 </div>
-                <Card className="h-full p-5">
+                <Card className="min-h-[190px] p-5">
                   <p className="font-mono text-xs text-accent">{node.period}</p>
                   <h3 className="mt-2 font-display text-base font-semibold leading-snug text-foreground">
                     {node.title}
