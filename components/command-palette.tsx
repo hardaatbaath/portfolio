@@ -3,6 +3,7 @@
 import {
   ArrowRight,
   FileText,
+  GraduationCap,
   Mail,
   Newspaper,
   PenLine,
@@ -44,6 +45,7 @@ export function CommandPalette() {
     const links: Item[] = [
       { label: "GitHub", group: "Links", icon: <GithubIcon className="h-4 w-4" aria-hidden />, run: () => go(socials.github, true) },
       { label: "LinkedIn", group: "Links", icon: <LinkedinIcon className="h-4 w-4" aria-hidden />, run: () => go(socials.linkedin, true) },
+      { label: "Google Scholar", group: "Links", keywords: "research papers publications", icon: <GraduationCap className="h-4 w-4" aria-hidden />, run: () => go(socials.scholar, true) },
       { label: "dev.to", group: "Links", keywords: "blog writing", icon: <Newspaper className="h-4 w-4" aria-hidden />, run: () => go(socials.devtoUrl, true) },
       { label: "Substack", group: "Links", keywords: "reflections", icon: <PenLine className="h-4 w-4" aria-hidden />, run: () => go(socials.substackUrl, true) },
       { label: "Résumé", group: "Links", keywords: "cv", icon: <FileText className="h-4 w-4" aria-hidden />, run: () => go(identity.resumeUrl, true) },
