@@ -1,19 +1,11 @@
-import { FileText, GraduationCap, Mail } from "lucide-react";
-import { identity, socials } from "@/site.config";
-import { GithubIcon, LinkedinIcon } from "../ui/brand-icons";
 import { Section, SectionHeader } from "../ui/section";
 import { Reveal } from "../ui/reveal";
 import { Card } from "../ui/card";
 import { ContactForm } from "../contact-form";
+import { getSocialLinks } from "../social-list";
 
 export function Contact() {
-  const links = [
-    { href: `mailto:${identity.email}`, label: "Email", Icon: Mail, external: false },
-    { href: socials.github, label: "GitHub", Icon: GithubIcon, external: true },
-    { href: socials.linkedin, label: "LinkedIn", Icon: LinkedinIcon, external: true },
-    { href: socials.scholar, label: "Google Scholar", Icon: GraduationCap, external: true },
-    { href: identity.resumeUrl, label: "Résumé", Icon: FileText, external: true },
-  ];
+  const links = getSocialLinks();
 
   return (
     <Section id="contact">

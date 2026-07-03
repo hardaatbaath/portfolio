@@ -1,22 +1,11 @@
-import { FileText, Mail } from "lucide-react";
-import { identity, socials } from "@/site.config";
-import { DevtoIcon, GithubIcon, LinkedinIcon, SubstackIcon, XIcon } from "./ui/brand-icons";
+import { getSocialLinks } from "./social-list";
 
 const iconClass =
-  "inline-flex h-8 w-8 items-center justify-center rounded-lg text-muted transition-colors hover:bg-elevated hover:text-foreground focus-visible:text-foreground";
+  "inline-flex h-7 w-7 items-center justify-center rounded-lg text-muted transition-colors hover:bg-elevated hover:text-foreground focus-visible:text-foreground";
 
-/** Icon-only social row. Any link with an empty href is hidden automatically. */
+/** Icon-only social row (sidebar). Same links as the Contact "Elsewhere" list. */
 export function SocialLinks() {
-  const links = [
-    { href: socials.github, label: "GitHub", Icon: GithubIcon, external: true },
-    { href: socials.linkedin, label: "LinkedIn", Icon: LinkedinIcon, external: true },
-    { href: socials.twitter, label: "X (Twitter)", Icon: XIcon, external: true },
-    { href: socials.devtoUrl, label: "dev.to", Icon: DevtoIcon, external: true },
-    { href: socials.substackUrl, label: "Substack", Icon: SubstackIcon, external: true },
-    { href: `mailto:${identity.email}`, label: "Email", Icon: Mail, external: false },
-    { href: identity.resumeUrl, label: "Résumé", Icon: FileText, external: true },
-  ].filter((l) => l.href && !l.href.endsWith("mailto:"));
-
+  const links = getSocialLinks();
   return (
     <nav aria-label="Social links" className="flex items-center justify-between">
       {links.map(({ href, label, Icon, external }) => (
@@ -28,7 +17,7 @@ export function SocialLinks() {
           {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
           className={iconClass}
         >
-          <Icon className="h-[17px] w-[17px]" aria-hidden />
+          <Icon className="h-4 w-4" aria-hidden />
         </a>
       ))}
     </nav>
