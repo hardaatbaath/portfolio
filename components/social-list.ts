@@ -1,5 +1,5 @@
 import type { ComponentType, SVGProps } from "react";
-import { FileText, GraduationCap, Mail } from "lucide-react";
+import { FileText, GraduationCap } from "lucide-react";
 import { identity, socials } from "@/site.config";
 import {
   DevtoIcon,
@@ -29,7 +29,6 @@ export function getSocialLinks(): SocialLink[] {
     { label: "dev.to", href: socials.devtoUrl, Icon: DevtoIcon, external: true },
     { label: "Substack", href: socials.substackUrl, Icon: SubstackIcon, external: true },
     { label: "Google Scholar", href: socials.scholar, Icon: GraduationCap, external: true },
-    { label: "Email", href: identity.email ? `mailto:${identity.email}` : "", Icon: Mail, external: false },
     { label: "Résumé", href: identity.resumeUrl, Icon: FileText, external: true },
   ].filter((l) => l.href);
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, FileText, GraduationCap, Mail } from "lucide-react";
+import { ArrowRight, FileText, GraduationCap } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { identity, nav, socials } from "@/site.config";
 import { cn } from "@/lib/utils";
@@ -51,7 +51,6 @@ export function CommandPalette() {
       { label: "dev.to", group: "Links", keywords: "blog writing notes", icon: <DevtoIcon className="h-4 w-4" aria-hidden />, run: () => go(socials.devtoUrl, true) },
       { label: "Substack", group: "Links", keywords: "reflections essays", icon: <SubstackIcon className="h-4 w-4" aria-hidden />, run: () => go(socials.substackUrl, true) },
       { label: "Résumé", group: "Links", keywords: "cv", icon: <FileText className="h-4 w-4" aria-hidden />, run: () => go(identity.resumeUrl, true) },
-      { label: "Email me", group: "Links", keywords: "contact mail", icon: <Mail className="h-4 w-4" aria-hidden />, run: () => go(`mailto:${identity.email}`, true) },
     ];
     return [...sections, ...links];
   }, [go]);
