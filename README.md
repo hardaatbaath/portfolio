@@ -22,19 +22,31 @@ social handles, feed URLs) also read from environment variables — see
 cp .env.example .env.local
 ```
 
-| I want to…                        | Edit this                                              |
-| --------------------------------- | ----------------------------------------------------- |
-| Change my email / links / handles | `.env.local` (or the defaults in `site.config.ts`)    |
-| Add / edit a project              | `projects` array in `site.config.ts`                  |
-| Update "Currently building/…"     | `currently` in `site.config.ts`                       |
-| Reorder or rename sections        | `nav` in `site.config.ts`                             |
-| Change reading lists              | `reading` in `site.config.ts`                         |
-| Update the timeline               | `timeline` in `site.config.ts`                        |
-| Swap the résumé                   | replace the PDF in `public/`, set `NEXT_PUBLIC_RESUME_URL` |
+| I want to…                                   | Edit this                                                        |
+| -------------------------------------------- | ---------------------------------------------------------------- |
+| Change my name / hero tagline / roles        | `identity` in `site.config.ts`                                   |
+| Change my email / social links / feed handles | `.env.local` (defaults live in `site.config.ts`)                |
+| Add / edit a **project** (title, blurb, tags, links) | `projects` array in `site.config.ts`                     |
+| Change a project's **status badge**          | the project's `status` field (see options below)                |
+| How many projects show before "More on GitHub" | `featuredProjectCount` in `site.config.ts`                     |
+| Update the **timeline**                      | `timeline` array in `site.config.ts`                             |
+| Change **reading** lists                     | `reading` in `site.config.ts`                                    |
+| Reorder / rename the **sidebar nav**         | `nav` in `site.config.ts`                                        |
+| Change a section's **heading / subtext**     | the `<SectionHeader label title description />` in that section's file under `components/sections/` |
+| Swap the résumé                              | replace the PDF in `public/`, set `NEXT_PUBLIC_RESUME_URL`       |
 
-**Blogs update themselves.** The latest 3 posts from **dev.to** (Technical
-Writing) and **Substack** (Reflections) are fetched automatically and refresh
-every hour — you never touch the code when you publish.
+**Project status badges.** Each project's `status` accepts one of:
+`"Planning" | "Building" | "Testing" | "Research" | "Released" | "Archived"`.
+They're color-coded automatically (blue = building/testing, green = research/released, muted = planning/archived).
+
+**Blogs update themselves.** The latest posts from **dev.to** (Blogs) and
+**Substack** (Beyond Code) are fetched automatically and refresh every hour —
+you never touch the code when you publish. Change how many show with
+`feeds.devtoCount` / `feeds.substackCount` in `site.config.ts`.
+
+> Note: section *headings and subtexts* (e.g. "Selected work", "Things that
+> moved me") live in each section component under `components/sections/`, not in
+> `site.config.ts` — they're short and rarely change, so they stay next to the layout.
 
 ---
 
