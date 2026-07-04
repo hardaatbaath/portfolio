@@ -44,7 +44,7 @@ export async function sendEmail(
       from,
       to,
       replyTo: email,
-      subject: `Portfolio message from ${name}`,
+      subject: `Message from ${name}`,
       text: `From: ${name} <${email}>\n\n${message}`,
     });
     if (error) throw new Error(error.message);
