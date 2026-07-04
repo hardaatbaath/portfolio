@@ -131,16 +131,15 @@ export const projects: Project[] = [
 // --- Reading (beyond the "currently reading" list) --------------------------
 export const reading = {
   technical: [
+    "System Design Interview",
     "Designing Data-Intensive Applications",
-    "Deep Learning — Goodfellow, Bengio & Courville",
-    "Probabilistic Machine Learning — Murphy",
+    "Naked Statistics",
     "Computer Systems: A Programmer's Perspective",
   ],
   humanities: [
-    "The Silent Patient",
+    "Humankind: A Hopeful History",
     "Thinking, Fast and Slow",
-    "Sapiens",
-    "The Beginning of Infinity",
+    "Slaughterhouse Five",
   ],
 };
 
