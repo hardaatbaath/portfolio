@@ -17,12 +17,31 @@ export function ContactForm() {
   return (
     <form action={formAction} className="space-y-3">
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <input name="name" type="text" required placeholder="Your name" aria-label="Your name" className={fieldClass} />
-        <input name="email" type="email" required placeholder="Your email" aria-label="Your email" className={fieldClass} />
+        <input
+          name="name"
+          type="text"
+          required
+          minLength={2}
+          maxLength={80}
+          placeholder="Your name"
+          aria-label="Your name"
+          className={fieldClass}
+        />
+        <input
+          name="email"
+          type="email"
+          required
+          maxLength={120}
+          placeholder="Your email"
+          aria-label="Your email"
+          className={fieldClass}
+        />
       </div>
       <textarea
         name="message"
         required
+        minLength={10}
+        maxLength={5000}
         rows={4}
         placeholder="Your message"
         aria-label="Your message"

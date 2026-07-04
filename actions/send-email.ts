@@ -20,6 +20,8 @@ export async function sendEmail(
 
   if (!name || !email || !message)
     return { status: "error", message: "Please fill in all fields." };
+  if (name.length < 2 || message.length < 10)
+    return { status: "error", message: "Please add a name and a bit more detail." };
   if (!isEmail(email))
     return { status: "error", message: "That email address looks off." };
   if (message.length > 5000)
