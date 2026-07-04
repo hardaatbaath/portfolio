@@ -7,6 +7,8 @@ import { Navigation } from "@/components/navigation";
 import { CommandPalette } from "@/components/command-palette";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Analytics } from "@/components/analytics";
+import { SpeedInsights } from "@vercel/speed-insights/next";
+import { Analytics as VercelAnalytics } from "@vercel/analytics/next";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-geist", display: "swap" });
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
@@ -71,7 +73,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               {children}
             </main>
           </div>
+          {/* Google Analytics (only if NEXT_PUBLIC_GA_ID is set) */}
           <Analytics />
+          {/* Vercel Web Analytics + Speed Insights (active once enabled in the
+              Vercel dashboard for this project; no-ops elsewhere) */}
+          <VercelAnalytics />
+          <SpeedInsights />
         </ThemeProvider>
       </body>
     </html>
