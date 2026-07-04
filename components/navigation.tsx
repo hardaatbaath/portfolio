@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { Menu, Search, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { identity, nav } from "@/site.config";
@@ -54,6 +55,14 @@ function NavList({
 function Identity() {
   return (
     <a href="#overview" className="block">
+      <Image
+        src="/avatar.png"
+        alt={identity.name}
+        width={48}
+        height={48}
+        priority
+        className="mb-3 h-12 w-12 rounded-full border border-border object-cover"
+      />
       <span className="font-display text-base font-semibold text-foreground">
         {identity.name}
       </span>
