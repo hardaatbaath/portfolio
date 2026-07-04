@@ -14,6 +14,11 @@ export async function sendEmail(
   _prev: ContactState,
   formData: FormData,
 ): Promise<ContactState> {
+  // Honeypot: humans never see/fill "company". If it's set, it's a bot —
+  // pretend success so it doesn't retry, but send nothing.
+  if (String(formData.get("company") ?? "").trim() !== "")
+    return { status: "success", message: "Thanks — I'll get back to you soon." };
+
   const name = String(formData.get("name") ?? "").trim();
   const email = String(formData.get("email") ?? "").trim();
   const message = String(formData.get("message") ?? "").trim();

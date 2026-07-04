@@ -16,6 +16,15 @@ export function ContactForm() {
 
   return (
     <form action={formAction} className="space-y-3">
+      {/* Honeypot: hidden from humans, bots fill it → server silently drops it */}
+      <input
+        type="text"
+        name="company"
+        tabIndex={-1}
+        autoComplete="off"
+        aria-hidden="true"
+        className="absolute -left-[9999px] h-0 w-0 opacity-0"
+      />
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <input
           name="name"
