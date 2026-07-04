@@ -36,10 +36,12 @@ export async function sendEmail(
 
   try {
     const resend = new Resend(apiKey);
-    // `onboarding@resend.dev` works before you verify a domain. Once you verify
-    // your own domain in Resend, change this `from` to e.g. hi@yourdomain.com.
+    // `onboarding@resend.dev` works before you verify a domain. After you verify
+    // your own domain in Resend, set CONTACT_FROM (e.g. "Hardaat <hi@hardaatsinghbaath.com>")
+    // — no code change needed.
+    const from = process.env.CONTACT_FROM || "Portfolio <onboarding@resend.dev>";
     const { error } = await resend.emails.send({
-      from: "Portfolio <onboarding@resend.dev>",
+      from,
       to,
       replyTo: email,
       subject: `Portfolio message from ${name}`,
