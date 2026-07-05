@@ -16,6 +16,7 @@ export type Post = {
   date: string; // ISO string, may be ""
   tags: string[];
   readingTime?: string;
+  image?: string; // cover image URL, if the feed provides one
   source: "dev.to" | "Substack";
 };
 
@@ -29,6 +30,8 @@ type DevToArticle = {
   published_at: string;
   tag_list: string[];
   reading_time_minutes?: number;
+  cover_image?: string | null;
+  social_image?: string | null;
 };
 
 export async function getDevtoPosts(): Promise<Post[]> {
@@ -49,6 +52,7 @@ export async function getDevtoPosts(): Promise<Post[]> {
       date: a.published_at ?? "",
       tags: Array.isArray(a.tag_list) ? a.tag_list : [],
       readingTime: a.reading_time_minutes ? `${a.reading_time_minutes} min read` : undefined,
+      image: a.cover_image || a.social_image || undefined,
       source: "dev.to",
     }));
   } catch {
@@ -87,14 +91,25 @@ export async function getSubstackPosts(): Promise<Post[]> {
     const items = Array.isArray(rawItems) ? rawItems : [rawItems];
 
     return items.slice(0, feeds.substackCount).map((item): Post => {
-      const raw = String(item.description ?? item["content:encoded"] ?? "");
+      const content = String(item["content:encoded"] ?? "");
+      const raw = String(item.description ?? content ?? "");
       const description = stripHtml(raw).slice(0, 180);
+
+      // Cover image: Substack puts it in <enclosure url="…">; fall back to the
+      // first <img> in the post content.
+      const enclosureUrl = item.enclosure?.["@_url"];
+      const imgMatch = (content || raw).match(/<img[^>]+src=["']([^"']+)["']/i);
+      const image =
+        (typeof enclosureUrl === "string" ? enclosureUrl : undefined) ||
+        (imgMatch ? imgMatch[1] : undefined);
+
       return {
         title: String(item.title ?? "Untitled"),
         url: String(item.link ?? base),
         description: description ? `${description}…` : "",
         date: item.pubDate ? String(item.pubDate) : "",
         tags: [],
+        image,
         source: "Substack",
       };
     });

@@ -8,7 +8,19 @@ import { Tag } from "./ui/badge";
 export function PostCard({ post }: { post: Post }) {
   const date = formatMonthYear(post.date);
   return (
-    <Card interactive className="flex h-full flex-col">
+    <Card interactive className="flex h-full flex-col overflow-hidden">
+      {post.image && (
+        <div className="-mx-6 -mt-6 mb-5 aspect-[16/9] overflow-hidden border-b border-border md:-mx-7 md:-mt-7">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={post.image}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            className="h-full w-full object-cover"
+          />
+        </div>
+      )}
       <div className="flex items-center gap-2 font-mono text-xs text-muted">
         <span className="text-accent">{post.source}</span>
         {date && (
