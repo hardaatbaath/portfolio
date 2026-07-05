@@ -14,9 +14,11 @@ const NAV_IDS = nav.map((n) => n.id);
 
 function NavList({
   active,
+  onSelect,
   onNavigate,
 }: {
   active: string;
+  onSelect: (id: string) => void;
   onNavigate?: () => void;
 }) {
   return (
@@ -27,7 +29,10 @@ function NavList({
           <li key={item.id}>
             <a
               href={`#${item.id}`}
-              onClick={onNavigate}
+              onClick={() => {
+                onSelect(item.id);
+                onNavigate?.();
+              }}
               aria-current={isActive ? "location" : undefined}
               className={cn(
                 "group relative flex items-center rounded-lg px-3 py-2 text-sm transition-colors",
@@ -90,7 +95,7 @@ function PaletteHint() {
 }
 
 export function Navigation() {
-  const active = useActiveSection(NAV_IDS);
+  const { active, select } = useActiveSection(NAV_IDS);
   const [open, setOpen] = useState(false);
 
   // Lock scroll + close on Escape while the mobile drawer is open
@@ -112,7 +117,7 @@ export function Navigation() {
         <Identity />
         <div className="my-6 h-px bg-border" />
         <nav aria-label="Sections" className="flex-1">
-          <NavList active={active} />
+          <NavList active={active} onSelect={select} />
         </nav>
         <PaletteHint />
         <div className="my-5 h-px bg-border" />
@@ -160,7 +165,7 @@ export function Navigation() {
             </div>
             <div className="my-6 h-px bg-border" />
             <nav aria-label="Sections" className="flex-1">
-              <NavList active={active} onNavigate={() => setOpen(false)} />
+              <NavList active={active} onSelect={select} onNavigate={() => setOpen(false)} />
             </nav>
             <div className="my-5 h-px bg-border" />
             <SocialLinks />
