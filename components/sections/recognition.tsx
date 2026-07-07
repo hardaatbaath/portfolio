@@ -7,9 +7,9 @@ export function Recognition() {
   return (
     <Section id="recognition">
       <SectionHeader
-        label="Recognition"
-        title="Awards & recognition"
-        description="A few competitions and milestones I'm proud of."
+        label="Milestones"
+        title="Milestones I'm proud of"
+        description="Competitions, research, and honours along the way."
       />
 
       <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
