@@ -52,6 +52,7 @@ export const analytics = {
 export const nav = [
   { id: "overview", label: "Overview" },
   { id: "projects", label: "Projects" },
+  { id: "recognition", label: "Recognition" },
   { id: "writing", label: "Blogs" },
   { id: "thinking", label: "Beyond Code" },
   { id: "reading", label: "Reading" },
@@ -125,6 +126,36 @@ export const projects: Project[] = [
     tags: ["Transformers", "Time Series", "Finance"],
     status: "Research",
     github: socials.github,
+  },
+];
+
+// --- Recognition / awards ---------------------------------------------------
+export type Award = { year: string; title: string; detail?: string };
+
+export const recognition: Award[] = [
+  {
+    year: "2024",
+    title: "NXP AIM — National Finalist",
+    detail:
+      "Top 15 of 600+ teams. Built an autonomous RC car with lane following, sign detection, and obstacle avoidance.",
+  },
+  {
+    year: "2024",
+    title: "LAM Research India — Stage 2",
+    detail:
+      "Top 100 of 1000+ teams. Designed a Peltier-based cooling system with live temperature monitoring and control.",
+  },
+  {
+    year: "2024",
+    title: "University Rover Challenge",
+    detail:
+      "Scored 93/100 with Project Kratos, improving on the previous year's result.",
+  },
+  {
+    year: "2023",
+    title: "Best Overall Rover — IRC",
+    detail:
+      "International Rover Challenge, Bengaluru — top honour with Project Kratos.",
   },
 ];
 
