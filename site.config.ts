@@ -187,6 +187,7 @@ export type TimelineEntry = { period: string; title: string; org: string; detail
 
 export const timeline: TimelineEntry[] = [
   { period: "Nov 2021 – Jul 2025", title: "B.E. Computer Science", org: "BITS Pilani, Goa", detail: "Bachelor's in CS. Coursework across ML, OS, networks, and architecture." },
+  { period: "May 2023 – May 2024", title: "Autonomous Subsystem Lead", org: "Project Kratos", detail: "Led autonomous navigation for a student-built Mars rover." },
   { period: "Jun 2023 – Aug 2023", title: "Research Intern", org: "CSIR-CEERI, Pilani", detail: "Deep-learning restoration of Rajasthani wall murals." },
   { period: "May 2024 – Aug 2024", title: "AI Engineer", org: "DG Takano, Tokyo", detail: "Automated a hardware testing line with cloud logging." },
   { period: "Jan 2025 – Present", title: "Machine Learning Engineer", org: "Nurix.AI, Bangalore", detail: "Speech emotion recognition and multilingual RAG systems." },

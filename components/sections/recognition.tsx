@@ -8,8 +8,8 @@ export function Recognition() {
     <Section id="recognition">
       <SectionHeader
         label="Milestones"
-        title="Milestones I'm proud of"
-        description="Competitions, research, and honours along the way."
+        title="Accomplishments"
+        description="A few milestones I'm proud of."
       />
 
       <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
