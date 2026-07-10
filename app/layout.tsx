@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
-import { identity } from "@/site.config";
+import { identity, socials } from "@/site.config";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Navigation } from "@/components/navigation";
 import { CommandPalette } from "@/components/command-palette";
@@ -47,6 +47,28 @@ export const viewport: Viewport = {
   ],
 };
 
+// JSON-LD Person schema: tells Google this domain *is* Hardaat, links all
+// profiles as one entity (sameAs), and enables richer name results.
+const personJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Person",
+  name: identity.name,
+  url: identity.siteUrl,
+  image: `${identity.siteUrl}/avatar.png`,
+  jobTitle: identity.roles[0],
+  worksFor: { "@type": "Organization", name: "Nurix.AI", url: "https://nurix.ai" },
+  alumniOf: { "@type": "CollegeOrUniversity", name: "BITS Pilani, Goa" },
+  knowsAbout: ["Machine Learning", "LLMs", "Retrieval-Augmented Generation", "Robotics", "Systems Programming"],
+  sameAs: [
+    socials.github,
+    socials.linkedin,
+    socials.scholar,
+    socials.devtoUrl,
+    socials.substackUrl,
+    socials.twitter,
+  ].filter(Boolean),
+};
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html
@@ -55,6 +77,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       className={`${geist.variable} ${inter.variable} ${jetbrains.variable}`}
     >
       <body>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }}
+        />
         <ThemeProvider>
           <a
             href="#overview"
