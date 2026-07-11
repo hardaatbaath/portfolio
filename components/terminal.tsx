@@ -3,38 +3,59 @@
 import { useEffect, useRef, useState } from "react";
 import { useReducedMotion } from "framer-motion";
 import { SquareTerminal } from "lucide-react";
+import { useTheme } from "next-themes";
 import { identity, socials } from "@/site.config";
 import { cn } from "@/lib/utils";
 
-type Line = { t: string; k: "in" | "out" | "sys" };
+type Line = { t: string; k: "in" | "out" | "sys"; href?: string };
 
-const PROMPT = "hardaat@portfolio:~$";
+const USER = "hardaat@portfolio";
 export const OPEN_TERMINAL_EVENT = "open-terminal";
 
-const BOOT: Line[] = [
-  { t: "Machine Learning Engineer @ Nurix.AI", k: "out" },
-  { t: "Systems · Robotics · Research — type `help` to explore.", k: "sys" },
+// section name → scroll target
+const SECTIONS: Record<string, string> = {
+  overview: "#overview",
+  projects: "#projects",
+  milestones: "#recognition",
+  blogs: "#writing",
+  "beyond-code": "#thinking",
+  reading: "#reading",
+  timeline: "#timeline",
+  contact: "#contact",
+};
+
+const COMMANDS = [
+  "help", "whoami", "stack", "now", "ls", "cd", "resume", "socials", "theme", "clear",
 ];
+
+const QUICK = ["help", "ls", "cd projects", "resume", "theme"];
 
 function go(hash: string) {
   if (typeof window !== "undefined") window.location.hash = hash;
 }
 
-/** Small interactive terminal — the hero's signature. Types on load, then
- *  responds to a handful of commands. Honors reduced-motion. */
+/** Interactive terminal (opens in a modal via TerminalButton / the ` key).
+ *  Supports command history (↑/↓), Tab-completion, ls/cd navigation, and a
+ *  theme toggle. Honors reduced-motion. */
 export function Terminal() {
   const reduce = useReducedMotion();
+  const { resolvedTheme, setTheme } = useTheme();
   const [history, setHistory] = useState<Line[]>([]);
   const [typed, setTyped] = useState("");
   const [ready, setReady] = useState(false);
   const [input, setInput] = useState("");
+  const past = useRef<string[]>([]); // command history
+  const cursor = useRef<number>(-1); // position in history while browsing
   const bodyRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Boot: type "whoami", then print the intro and open the prompt.
   useEffect(() => {
+    const boot: Line[] = [
+      { t: "Machine Learning Engineer @ Nurix.AI", k: "out" },
+      { t: "Systems · Robotics · Research — type `help` to explore.", k: "sys" },
+    ];
     if (reduce) {
-      setHistory([{ t: "whoami", k: "in" }, ...BOOT]);
+      setHistory([{ t: "whoami", k: "in" }, ...boot]);
       setReady(true);
       return;
     }
@@ -46,7 +67,7 @@ export function Terminal() {
       if (i >= cmd.length) {
         clearInterval(iv);
         setTimeout(() => {
-          setHistory([{ t: "whoami", k: "in" }, ...BOOT]);
+          setHistory([{ t: "whoami", k: "in" }, ...boot]);
           setTyped("");
           setReady(true);
         }, 400);
@@ -59,111 +80,160 @@ export function Terminal() {
     bodyRef.current?.scrollTo({ top: bodyRef.current.scrollHeight });
   }, [history, typed]);
 
-  // Focus the prompt once booted (it lives in a modal, so this is safe).
   useEffect(() => {
     if (ready) inputRef.current?.focus();
   }, [ready]);
 
   function exec(raw: string) {
-    const cmd = raw.trim().toLowerCase();
-    const out: Line[] = [{ t: raw.trim() || "", k: "in" }];
+    const line = raw.trim();
+    const [name, ...args] = line.split(/\s+/);
+    const cmd = name.toLowerCase();
+    const out: Line[] = [{ t: line, k: "in" }];
+    const say = (t: string, href?: string) => out.push({ t, k: "out", href });
+    const sys = (t: string) => out.push({ t, k: "sys" });
+
+    if (line) {
+      past.current = [...past.current, line];
+      cursor.current = past.current.length;
+    }
+
     switch (cmd) {
       case "":
         break;
       case "help":
-        out.push({ t: "whoami · stack · now · projects · blogs · contact · resume · socials · clear", k: "out" });
+        say("help · whoami · stack · now · ls · cd <section> · resume · socials · theme · clear");
         break;
       case "whoami":
-        out.push({ t: `${identity.name} — Machine Learning Engineer @ Nurix.AI`, k: "out" });
+        say(`${identity.name} — Machine Learning Engineer @ Nurix.AI`);
         break;
       case "stack":
-        out.push({ t: "PyTorch · Rust · ROS · RAG / LLMs · TypeScript · AWS", k: "out" });
+        say("PyTorch · Rust · ROS · RAG / LLMs · TypeScript · AWS");
         break;
       case "now":
-        out.push({ t: "building speech + multilingual RAG systems at Nurix.AI", k: "out" });
+        say("building speech + multilingual RAG systems at Nurix.AI");
         break;
-      case "projects":
-        out.push({ t: "→ opening projects…", k: "sys" });
-        go("#projects");
+      case "ls":
+        say(Object.keys(SECTIONS).join("   "));
         break;
-      case "blogs":
-        out.push({ t: "→ opening blogs…", k: "sys" });
-        go("#writing");
+      case "cd": {
+        const target = (args[0] ?? "").toLowerCase().replace(/^~\/?|\/$/g, "");
+        if (!target || target === "~" || target === "overview") {
+          sys("→ ~/overview");
+          go("#overview");
+        } else if (SECTIONS[target]) {
+          sys(`→ ~/${target}`);
+          go(SECTIONS[target]);
+        } else {
+          say(`cd: no such section: ${target} — try \`ls\``);
+        }
         break;
-      case "contact":
-        out.push({ t: "→ opening contact…", k: "sys" });
-        go("#contact");
-        break;
+      }
       case "resume":
-        out.push({ t: "→ opening résumé…", k: "sys" });
+        sys("→ opening résumé…");
         if (typeof window !== "undefined") window.open(identity.resumeUrl, "_blank");
         break;
       case "socials":
-        out.push({ t: `github   ${socials.github}`, k: "out" });
-        out.push({ t: `linkedin ${socials.linkedin}`, k: "out" });
+        out.push({ t: socials.github, k: "out", href: socials.github });
+        out.push({ t: socials.linkedin, k: "out", href: socials.linkedin });
+        out.push({ t: socials.scholar, k: "out", href: socials.scholar });
+        break;
+      case "theme": {
+        const next = resolvedTheme === "dark" ? "light" : "dark";
+        setTheme(next);
+        sys(`→ theme: ${next}`);
+        break;
+      }
+      case "sudo":
+        say("🔒 permission denied — this is a portfolio, not prod.");
         break;
       case "clear":
         setHistory([]);
         setInput("");
         return;
       default:
-        out.push({ t: `command not found: ${cmd} — try \`help\``, k: "out" });
+        say(`command not found: ${cmd} — try \`help\``);
     }
     setHistory((h) => [...h, ...out]);
     setInput("");
   }
 
-  const color = (k: Line["k"]) =>
-    k === "sys" ? "text-accent" : k === "in" ? "text-foreground" : "text-muted";
+  function onKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === "Enter") {
+      exec(input);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      if (past.current.length === 0) return;
+      cursor.current = Math.max(0, cursor.current - 1);
+      setInput(past.current[cursor.current] ?? "");
+    } else if (e.key === "ArrowDown") {
+      e.preventDefault();
+      if (past.current.length === 0) return;
+      cursor.current = Math.min(past.current.length, cursor.current + 1);
+      setInput(past.current[cursor.current] ?? "");
+    } else if (e.key === "Tab") {
+      e.preventDefault();
+      const m = COMMANDS.filter((c) => c.startsWith(input.trim().toLowerCase()));
+      if (m.length === 1) setInput(m[0] + " ");
+      else if (m.length > 1) setHistory((h) => [...h, { t: m.join("   "), k: "sys" }]);
+    }
+  }
+
+  const Prompt = () => (
+    <span className="select-none">
+      <span className="text-success">{USER}</span>
+      <span className="text-muted">:~$</span>
+    </span>
+  );
 
   return (
     <div
-      className="card w-full max-w-xl cursor-text overflow-hidden p-0 font-mono text-[13px]"
+      className="card w-full overflow-hidden p-0 font-mono text-[13px]"
       onClick={() => inputRef.current?.focus()}
     >
-      {/* title bar */}
       <div className="flex items-center gap-2 border-b border-border px-4 py-2.5">
         <span className="h-3 w-3 rounded-full bg-[#ff5f57]" />
         <span className="h-3 w-3 rounded-full bg-[#febc2e]" />
         <span className="h-3 w-3 rounded-full bg-[#28c840]" />
-        <span className="ml-2 text-xs text-muted">{PROMPT}</span>
+        <span className="ml-2 text-xs text-muted">{USER}:~$</span>
       </div>
 
-      {/* body */}
-      <div ref={bodyRef} className="max-h-56 space-y-1 overflow-y-auto p-4 leading-relaxed">
-        {/* boot typing line */}
+      <div ref={bodyRef} className="max-h-64 space-y-1 overflow-y-auto p-4 leading-relaxed">
         {!ready && (
           <div>
-            <span className="text-accent">{PROMPT}</span>{" "}
-            <span className="text-foreground">{typed}</span>
+            <Prompt /> <span className="text-foreground">{typed}</span>
             <span className="ml-0.5 inline-block h-3.5 w-2 translate-y-0.5 animate-pulse bg-foreground" />
           </div>
         )}
 
         {history.map((l, idx) => (
-          <div key={idx} className="break-words">
+          <div key={idx} className="break-all">
             {l.k === "in" ? (
               <>
-                <span className="text-accent">{PROMPT}</span>{" "}
-                <span className={color(l.k)}>{l.t}</span>
+                <Prompt /> <span className="text-foreground">{l.t}</span>
               </>
+            ) : l.href ? (
+              <a
+                href={l.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-accent hover:underline"
+              >
+                {l.t}
+              </a>
             ) : (
-              <span className={color(l.k)}>{l.t}</span>
+              <span className={l.k === "sys" ? "text-accent" : "text-muted"}>{l.t}</span>
             )}
           </div>
         ))}
 
-        {/* live input line */}
         {ready && (
           <div className="flex items-center">
-            <span className="shrink-0 text-accent">{PROMPT}</span>
+            <Prompt />
             <input
               ref={inputRef}
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") exec(input);
-              }}
+              onKeyDown={onKeyDown}
               aria-label="Terminal input — type a command like help"
               spellCheck={false}
               autoComplete="off"
@@ -171,6 +241,20 @@ export function Terminal() {
             />
           </div>
         )}
+      </div>
+
+      {/* quick commands */}
+      <div className="flex flex-wrap gap-1.5 border-t border-border px-4 py-2.5">
+        {QUICK.map((q) => (
+          <button
+            key={q}
+            type="button"
+            onClick={() => exec(q)}
+            className="rounded-md border border-border px-2 py-0.5 text-[11px] text-muted transition-colors hover:border-accent/50 hover:text-accent"
+          >
+            {q}
+          </button>
+        ))}
       </div>
     </div>
   );
