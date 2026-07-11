@@ -4,6 +4,7 @@ import { Reveal } from "../ui/reveal";
 import { buttonVariants } from "../ui/button";
 import { GithubIcon } from "../ui/brand-icons";
 import { ExternalLink } from "../ui/external-link";
+import { ContributionGraph } from "../contribution-graph";
 
 export function Hero() {
   return (
@@ -66,6 +67,13 @@ export function Hero() {
             GitHub
           </a>
         </div>
+      </Reveal>
+
+      <Reveal delay={0.28} className="mt-14">
+        <p className="mb-3 font-mono text-xs uppercase tracking-[0.2em] text-muted">
+          <span className="text-accent">{">"}</span> Recent activity
+        </p>
+        <ContributionGraph />
       </Reveal>
     </Section>
   );
