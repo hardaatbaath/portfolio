@@ -5,14 +5,13 @@ import { buttonVariants } from "../ui/button";
 import { GithubIcon } from "../ui/brand-icons";
 import { ExternalLink } from "../ui/external-link";
 import { ContributionGraph } from "../contribution-graph";
+import { Terminal } from "../terminal";
 
 export function Hero() {
   return (
     <Section id="overview" className="flex min-h-[82vh] flex-col justify-center py-0">
-      <Reveal>
-        <p className="mb-6 font-mono text-sm text-muted">
-          <span className="text-accent">$</span> whoami
-        </p>
+      <Reveal className="mb-8">
+        <Terminal />
       </Reveal>
 
       <Reveal delay={0.05}>
