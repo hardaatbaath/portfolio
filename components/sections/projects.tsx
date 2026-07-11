@@ -33,6 +33,20 @@ export function Projects() {
                 {project.description}
               </p>
 
+              {project.metrics && project.metrics.length > 0 && (
+                <div className="mt-4 flex flex-wrap gap-1.5">
+                  {project.metrics.map((m) => (
+                    <span
+                      key={m}
+                      className="inline-flex items-center gap-1.5 rounded-md border border-accent/25 bg-accent/10 px-2 py-1 font-mono text-xs text-accent"
+                    >
+                      <span className="h-1 w-1 rounded-full bg-accent" aria-hidden />
+                      {m}
+                    </span>
+                  ))}
+                </div>
+              )}
+
               <div className="mt-4 flex flex-wrap gap-1.5">
                 {project.tags.map((t) => (
                   <Tag key={t}>{t}</Tag>
