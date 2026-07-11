@@ -4,14 +4,14 @@ import { Reveal } from "../ui/reveal";
 import { buttonVariants } from "../ui/button";
 import { GithubIcon } from "../ui/brand-icons";
 import { ExternalLink } from "../ui/external-link";
-import { ContributionGraph } from "../contribution-graph";
-import { Terminal } from "../terminal";
 
 export function Hero() {
   return (
     <Section id="overview" className="flex min-h-[82vh] flex-col justify-center py-0">
-      <Reveal className="mb-8">
-        <Terminal />
+      <Reveal>
+        <p className="mb-6 font-mono text-sm text-muted">
+          <span className="text-accent">$</span> whoami
+        </p>
       </Reveal>
 
       <Reveal delay={0.05}>
@@ -66,13 +66,6 @@ export function Hero() {
             GitHub
           </a>
         </div>
-      </Reveal>
-
-      <Reveal delay={0.28} className="mt-14">
-        <p className="mb-3 font-mono text-xs uppercase tracking-[0.2em] text-muted">
-          <span className="text-accent">{">"}</span> Recent activity
-        </p>
-        <ContributionGraph />
       </Reveal>
     </Section>
   );

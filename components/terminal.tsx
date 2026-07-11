@@ -2,11 +2,14 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useReducedMotion } from "framer-motion";
+import { SquareTerminal } from "lucide-react";
 import { identity, socials } from "@/site.config";
+import { cn } from "@/lib/utils";
 
 type Line = { t: string; k: "in" | "out" | "sys" };
 
 const PROMPT = "hardaat@portfolio:~$";
+export const OPEN_TERMINAL_EVENT = "open-terminal";
 
 const BOOT: Line[] = [
   { t: "Machine Learning Engineer @ Nurix.AI", k: "out" },
@@ -55,6 +58,11 @@ export function Terminal() {
   useEffect(() => {
     bodyRef.current?.scrollTo({ top: bodyRef.current.scrollHeight });
   }, [history, typed]);
+
+  // Focus the prompt once booted (it lives in a modal, so this is safe).
+  useEffect(() => {
+    if (ready) inputRef.current?.focus();
+  }, [ready]);
 
   function exec(raw: string) {
     const cmd = raw.trim().toLowerCase();
@@ -163,6 +171,72 @@ export function Terminal() {
             />
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+/** Icon button that opens the terminal modal. Also opens via the ` key. */
+export function TerminalButton({ className }: { className?: string }) {
+  return (
+    <button
+      type="button"
+      aria-label="Open terminal"
+      title="Terminal ( ` )"
+      onClick={() => window.dispatchEvent(new Event(OPEN_TERMINAL_EVENT))}
+      className={cn(
+        "inline-flex h-9 w-9 items-center justify-center rounded-lg text-muted transition-colors hover:bg-elevated hover:text-foreground",
+        className,
+      )}
+    >
+      <SquareTerminal className="h-[18px] w-[18px]" aria-hidden />
+    </button>
+  );
+}
+
+/** The terminal overlay. Rendered once (in the layout); opens on the button
+ *  click event or the ` key, closes on Escape / backdrop. */
+export function TerminalModal() {
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    const onOpen = () => setOpen(true);
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") return setOpen(false);
+      if (e.key === "`") {
+        const tag = (e.target as HTMLElement)?.tagName?.toLowerCase();
+        if (tag !== "input" && tag !== "textarea") {
+          e.preventDefault();
+          setOpen((o) => !o);
+        }
+      }
+    };
+    window.addEventListener(OPEN_TERMINAL_EVENT, onOpen);
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener(OPEN_TERMINAL_EVENT, onOpen);
+      window.removeEventListener("keydown", onKey);
+    };
+  }, []);
+
+  useEffect(() => {
+    document.body.style.overflow = open ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [open]);
+
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-[14vh]">
+      <button
+        aria-label="Close terminal"
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        onClick={() => setOpen(false)}
+      />
+      <div className="relative w-full max-w-xl">
+        <Terminal />
       </div>
     </div>
   );
