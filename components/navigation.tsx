@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { useActiveSection } from "@/lib/use-active-section";
 import { SocialLinks } from "./social-links";
 import { ThemeToggle } from "./theme-toggle";
+import { TerminalButton } from "./terminal";
 import { OPEN_PALETTE_EVENT } from "./command-palette";
 
 const NAV_IDS = nav.map((n) => n.id);
@@ -130,6 +131,7 @@ export function Navigation() {
           {identity.name}
         </a>
         <div className="flex items-center gap-1">
+          <TerminalButton />
           <ThemeToggle />
           <button
             type="button"

@@ -71,6 +71,7 @@ export type Project = {
   description: string;
   tags: string[];
   status: ProjectStatus;
+  metrics?: string[]; // punchy outcome highlights, shown as accent chips
   github?: string;
   writeup?: string;
   demo?: string;
@@ -86,6 +87,7 @@ export const projects: Project[] = [
       "A multi-corpus emotion-recognition model in PyTorch — trained on IEMOCAP, RAVDESS, and CREMA-D — reaching 87% classification accuracy. Built at Nurix.AI.",
     tags: ["PyTorch", "Audio", "Deep Learning"],
     status: "Released",
+    metrics: ["87% accuracy", "3 speech corpora"],
   },
   {
     title: "Multimodal Multilingual RAG",
@@ -93,6 +95,7 @@ export const projects: Project[] = [
       "A retrieval-augmented generation pipeline serving multiple languages and modalities at 96% accuracy with a p95 latency of 2.93s. Built at Nurix.AI.",
     tags: ["RAG", "LLMs", "Retrieval"],
     status: "Building",
+    metrics: ["96% accuracy", "p95 2.93s"],
   },
   {
     title: "Distributed Deployment Platform",
@@ -100,6 +103,7 @@ export const projects: Project[] = [
       "Deploys GitHub repos to the web via AWS S3 + ECS, with a Node.js API and reverse proxy, a Kafka log pipeline, and PostgreSQL for real-time build logs.",
     tags: ["Node.js", "AWS", "Kafka", "PostgreSQL"],
     status: "Released",
+    metrics: ["one-click deploys", "real-time build logs"],
     github: socials.github,
   },
   {
@@ -108,6 +112,7 @@ export const projects: Project[] = [
       "Autonomous navigation for a student-built Mars rover: visual servoing with YOLO, PID + RTK-GNSS waypointing to 10 cm accuracy, and point-cloud terrain mapping on a Jetson.",
     tags: ["ROS", "Computer Vision", "Robotics"],
     status: "Research",
+    metrics: ["10 cm GPS accuracy", "autonomous nav"],
     github: "https://github.com/Kratos-The-Rover",
     writeup: "https://kratos-the-rover.github.io/",
   },
@@ -125,6 +130,7 @@ export const projects: Project[] = [
       "A Transformer + CNN time-series model on NIFTY-50 and S&P 500, paired with a realistic trading simulator that accounts for transaction costs and taxation.",
     tags: ["Transformers", "Time Series", "Finance"],
     status: "Research",
+    metrics: ["NIFTY-50 & S&P 500"],
     github: socials.github,
   },
 ];

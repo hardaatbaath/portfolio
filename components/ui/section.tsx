@@ -38,7 +38,8 @@ export function SectionHeader({
 }) {
   return (
     <Reveal className="mb-10 md:mb-12">
-      <p className="mb-3 font-mono text-xs uppercase tracking-[0.2em] text-accent">
+      <p className="mb-3 flex items-center gap-2.5 font-mono text-xs uppercase tracking-[0.2em] text-accent">
+        <span className="h-px w-6 bg-accent/60" aria-hidden />
         {label}
       </p>
       <h2 className="text-2xl font-semibold text-foreground md:text-3xl">
