@@ -6,7 +6,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { Navigation } from "@/components/navigation";
 import { CommandPalette } from "@/components/command-palette";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { TerminalButton, TerminalModal } from "@/components/terminal";
+import { TerminalButton, TerminalMode } from "@/components/terminal";
 import { Analytics } from "@/components/analytics";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics as VercelAnalytics } from "@vercel/analytics/next";
@@ -96,7 +96,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <ThemeToggle />
           </div>
           <CommandPalette />
-          <TerminalModal />
+          <TerminalMode />
           <div className="lg:pl-72">
             <main className="mx-auto max-w-4xl px-6 pt-20 md:px-10 lg:pt-0">
               {children}
