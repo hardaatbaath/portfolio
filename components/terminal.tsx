@@ -18,9 +18,9 @@ type Line = { t: string; k: "in" | "out" | "dim" | "head" | "sys" | "link"; href
 const USER = "hardaat@portfolio";
 export const OPEN_TERMINAL_EVENT = "open-terminal";
 
-const B = (): Line => ({ t: "", k: "out" }); // blank spacer
+const B = (): Line => ({ t: "", k: "out" });
 
-// ---- content builders (render real portfolio content as terminal output) ----
+// ---- content builders --------------------------------------------------------
 function aboutLines(): Line[] {
   return [
     { t: `${identity.name} — Machine Learning Engineer @ Nurix.AI`, k: "head" },
@@ -30,7 +30,7 @@ function aboutLines(): Line[] {
   ];
 }
 function projectsLines(): Line[] {
-  const out: Line[] = [{ t: "// selected work", k: "sys" }, B()];
+  const out: Line[] = [];
   for (const p of projects) {
     out.push({ t: `▸ ${p.title}   [${p.status}]`, k: "head" });
     if (p.metrics?.length) out.push({ t: `  ${p.metrics.join("   ·   ")}`, k: "dim" });
@@ -43,7 +43,7 @@ function projectsLines(): Line[] {
   return out;
 }
 function milestonesLines(): Line[] {
-  const out: Line[] = [{ t: "// accomplishments", k: "sys" }, B()];
+  const out: Line[] = [];
   for (const a of recognition) {
     out.push({ t: `▸ ${a.title}   (${a.year})`, k: "head" });
     if (a.detail) out.push({ t: `  ${a.detail}`, k: "out" });
@@ -53,8 +53,6 @@ function milestonesLines(): Line[] {
 }
 function readingLines(): Line[] {
   return [
-    { t: "// on the shelf", k: "sys" },
-    B(),
     { t: "Technical", k: "head" },
     ...reading.technical.map((b): Line => ({ t: `  - ${b}`, k: "out" })),
     B(),
@@ -63,7 +61,7 @@ function readingLines(): Line[] {
   ];
 }
 function timelineLines(): Line[] {
-  const out: Line[] = [{ t: "// the path so far", k: "sys" }, B()];
+  const out: Line[] = [];
   for (const t of timeline) {
     out.push({ t: `${t.period}`, k: "dim" });
     out.push({ t: `  ${t.title} — ${t.org}`, k: "head" });
@@ -74,46 +72,35 @@ function timelineLines(): Line[] {
 }
 function contactLines(): Line[] {
   return [
-    { t: "// let's connect", k: "sys" },
-    B(),
     { t: `github → ${socials.github}`, k: "link", href: socials.github },
     { t: `linkedin → ${socials.linkedin}`, k: "link", href: socials.linkedin },
     { t: `scholar → ${socials.scholar}`, k: "link", href: socials.scholar },
-    B(),
     { t: "…or run `exit` and use the contact form on the site.", k: "dim" },
   ];
 }
-function blogsLines(): Line[] {
-  return [
-    { t: "// writing", k: "sys" },
-    { t: `latest posts → ${socials.devtoUrl}`, k: "link", href: socials.devtoUrl },
-  ];
-}
-function beyondLines(): Line[] {
-  return [
-    { t: "// beyond code", k: "sys" },
-    { t: `reflections → ${socials.substackUrl}`, k: "link", href: socials.substackUrl },
-  ];
-}
 
-const SECTIONS: Record<string, () => Line[]> = {
+// long sections open in a man-style pager
+const PAGER: Record<string, { title: string; fn: () => Line[] }> = {
+  projects: { title: "PROJECTS", fn: projectsLines },
+  milestones: { title: "MILESTONES", fn: milestonesLines },
+  timeline: { title: "TIMELINE", fn: timelineLines },
+  reading: { title: "READING", fn: readingLines },
+};
+// short sections print inline
+const INLINE: Record<string, () => Line[]> = {
   about: aboutLines,
-  projects: projectsLines,
-  milestones: milestonesLines,
-  blogs: blogsLines,
-  "beyond-code": beyondLines,
-  reading: readingLines,
-  timeline: timelineLines,
   contact: contactLines,
+  socials: contactLines,
+  blogs: () => [{ t: `latest posts → ${socials.devtoUrl}`, k: "link", href: socials.devtoUrl }],
+  "beyond-code": () => [{ t: `reflections → ${socials.substackUrl}`, k: "link", href: socials.substackUrl }],
 };
 
+const SECTION_NAMES = [...Object.keys(PAGER), "about", "blogs", "beyond-code", "contact"];
 const COMMANDS = [
-  "help", "about", "whoami", "ls", "cd", "projects", "milestones", "blogs",
-  "beyond-code", "reading", "timeline", "contact", "socials", "stack", "now",
-  "resume", "theme", "clear", "exit",
+  "help", "about", "whoami", "ls", "cd", ...Object.keys(PAGER), "blogs",
+  "beyond-code", "contact", "socials", "stack", "now", "resume", "theme", "clear", "exit",
 ];
-
-const QUICK = ["help", "ls", "projects", "milestones", "contact", "exit"];
+const QUICK = ["help", "ls", "projects", "milestones", "timeline", "exit"];
 
 export function TerminalButton({ className }: { className?: string }) {
   return (
@@ -132,23 +119,54 @@ export function TerminalButton({ className }: { className?: string }) {
   );
 }
 
+const cls = (k: Line["k"]) =>
+  k === "head"
+    ? "text-accent font-semibold"
+    : k === "sys"
+      ? "text-accent"
+      : k === "dim"
+        ? "text-muted"
+        : "text-foreground/90";
+
+function LineView({ l }: { l: Line }) {
+  if (l.k === "in")
+    return (
+      <div className="break-words">
+        <span className="select-none whitespace-nowrap">
+          <span className="text-success">{USER}</span>
+          <span className="text-muted">:~$</span>
+        </span>{" "}
+        <span className="text-foreground">{l.t}</span>
+      </div>
+    );
+  if (l.k === "link" && l.href)
+    return (
+      <div className="break-all">
+        <a href={l.href} target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">
+          {l.t}
+        </a>
+      </div>
+    );
+  return <div className={cn("break-words", cls(l.k))}>{l.t || " "}</div>;
+}
+
 /** Full-screen terminal mode — a third way to view the whole portfolio.
- *  Renders real content (projects, milestones, reading, …) as command output. */
+ *  Long sections open in a scrollable man-style pager (q to quit). */
 export function TerminalMode() {
   const { resolvedTheme, setTheme } = useTheme();
   const [open, setOpen] = useState(false);
   const [history, setHistory] = useState<Line[]>([]);
   const [input, setInput] = useState("");
+  const [pager, setPager] = useState<{ title: string; lines: Line[] } | null>(null);
   const past = useRef<string[]>([]);
   const cursor = useRef(0);
   const bodyRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const pagerRef = useRef<HTMLDivElement>(null);
 
-  // open / close via event + keyboard
   useEffect(() => {
     const onOpen = () => setOpen(true);
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") return setOpen(false);
       if (e.key === "`") {
         const tag = (e.target as HTMLElement)?.tagName?.toLowerCase();
         if (tag !== "input" && tag !== "textarea") {
@@ -165,7 +183,6 @@ export function TerminalMode() {
     };
   }, []);
 
-  // seed a welcome banner when first opened
   useEffect(() => {
     if (open && history.length === 0) {
       setHistory([
@@ -174,16 +191,17 @@ export function TerminalMode() {
         B(),
       ]);
     }
-    if (open) {
-      document.body.style.overflow = "hidden";
-      setTimeout(() => inputRef.current?.focus(), 50);
-    } else {
-      document.body.style.overflow = "";
-    }
+    document.body.style.overflow = open ? "hidden" : "";
+    if (open && !pager) setTimeout(() => inputRef.current?.focus(), 50);
     return () => {
       document.body.style.overflow = "";
     };
-  }, [open, history.length]);
+  }, [open, history.length, pager]);
+
+  useEffect(() => {
+    if (pager) setTimeout(() => pagerRef.current?.focus(), 30);
+    else if (open) setTimeout(() => inputRef.current?.focus(), 30);
+  }, [pager, open]);
 
   useEffect(() => {
     bodyRef.current?.scrollTo({ top: bodyRef.current.scrollHeight });
@@ -195,16 +213,18 @@ export function TerminalMode() {
     const cmd = name.toLowerCase();
     const out: Line[] = [{ t: line, k: "in" }];
     const say = (t: string) => out.push({ t, k: "out" });
+    let toPage: { title: string; lines: Line[] } | null = null;
 
     if (line) {
       past.current.push(line);
       cursor.current = past.current.length;
     }
 
-    const showSection = (key: string) => {
+    const resolve = (key: string) => {
       const norm = key.toLowerCase().replace(/^~\/?|\/$/g, "");
-      const fn = SECTIONS[norm] ?? (norm === "" || norm === "overview" ? aboutLines : undefined);
-      if (fn) out.push(...fn());
+      if (PAGER[norm]) toPage = { title: PAGER[norm].title, lines: PAGER[norm].fn() };
+      else if (INLINE[norm]) out.push(...INLINE[norm]());
+      else if (norm === "" || norm === "overview") out.push(...aboutLines());
       else say(`no such section: ${key} — try \`ls\``);
     };
 
@@ -212,29 +232,28 @@ export function TerminalMode() {
       case "":
         break;
       case "help":
-        say("about · ls · projects · milestones · blogs · beyond-code · reading · timeline · contact · socials · stack · now · resume · theme · clear · exit");
+        say("about · ls · projects · milestones · timeline · reading · blogs · beyond-code · contact · socials · stack · now · resume · theme · clear · exit");
         break;
       case "about":
       case "whoami":
         out.push(...aboutLines());
         break;
       case "ls":
-        say(Object.keys(SECTIONS).join("   "));
+        say(SECTION_NAMES.join("   "));
         break;
       case "cd":
-        showSection(args[0] ?? "");
+      case "man":
+        resolve(args[0] ?? "");
         break;
       case "projects":
       case "milestones":
+      case "timeline":
+      case "reading":
       case "blogs":
       case "beyond-code":
-      case "reading":
-      case "timeline":
       case "contact":
-        showSection(cmd);
-        break;
       case "socials":
-        out.push(...contactLines());
+        resolve(cmd);
         break;
       case "stack":
         say("PyTorch · Rust · ROS · RAG / LLMs · TypeScript · AWS");
@@ -270,10 +289,12 @@ export function TerminalMode() {
     }
     setHistory((h) => [...h, ...out]);
     setInput("");
+    if (toPage) setPager(toPage);
   }
 
   function onKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
     if (e.key === "Enter") exec(input);
+    else if (e.key === "Escape") setOpen(false);
     else if (e.key === "ArrowUp") {
       e.preventDefault();
       if (!past.current.length) return;
@@ -294,21 +315,7 @@ export function TerminalMode() {
 
   if (!open) return null;
 
-  const Prompt = () => (
-    <span className="select-none whitespace-nowrap">
-      <span className="text-success">{USER}</span>
-      <span className="text-muted">:~$</span>
-    </span>
-  );
-
-  const cls = (k: Line["k"]) =>
-    k === "head"
-      ? "text-accent font-semibold"
-      : k === "sys"
-        ? "text-accent"
-        : k === "dim"
-          ? "text-muted"
-          : "text-foreground/90";
+  const title = pager?.title ?? "";
 
   return (
     <div className="fixed inset-0 z-[60] flex flex-col bg-background font-mono text-[13.5px]">
@@ -328,66 +335,82 @@ export function TerminalMode() {
         </button>
       </div>
 
-      {/* output + inline prompt */}
-      <div
-        ref={bodyRef}
-        className="flex-1 space-y-0.5 overflow-y-auto p-5 leading-relaxed sm:p-8"
-        onClick={() => inputRef.current?.focus()}
-      >
-        {history.map((l, i) =>
-          l.k === "in" ? (
-            <div key={i} className="break-words">
-              <Prompt /> <span className="text-foreground">{l.t}</span>
-            </div>
-          ) : l.k === "link" && l.href ? (
-            <div key={i} className="break-all">
-              <a
-                href={l.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-accent hover:underline"
-              >
-                {l.t}
-              </a>
-            </div>
-          ) : (
-            <div key={i} className={cn("break-words", cls(l.k))}>
-              {l.t || " "}
-            </div>
-          ),
-        )}
-
-        <div className="flex items-center">
-          <Prompt />
-          <input
-            ref={inputRef}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={onKeyDown}
-            aria-label="Terminal input"
-            spellCheck={false}
-            autoComplete="off"
-            className="ml-2 min-w-0 flex-1 bg-transparent text-foreground caret-accent outline-none"
-          />
+      {pager ? (
+        /* man-style pager */
+        <div
+          ref={pagerRef}
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === "q" || e.key === "Escape") {
+              e.preventDefault();
+              e.stopPropagation();
+              setPager(null);
+            }
+          }}
+          className="flex flex-1 flex-col outline-none"
+        >
+          <div className="flex justify-between border-b border-border px-5 py-2 text-xs uppercase tracking-wider text-muted sm:px-8">
+            <span>{title}(1)</span>
+            <span className="hidden sm:inline">Portfolio Manual</span>
+            <span>{title}(1)</span>
+          </div>
+          <div className="flex-1 space-y-0.5 overflow-y-auto p-5 leading-relaxed sm:p-8">
+            {pager.lines.map((l, i) => (
+              <LineView key={i} l={l} />
+            ))}
+          </div>
+          <div className="border-t border-border bg-elevated px-5 py-2 text-xs text-muted sm:px-8">
+            manual: {title.toLowerCase()} — ↑ / ↓ · space to scroll ·{" "}
+            <span className="text-accent">q</span> to quit
+          </div>
         </div>
-      </div>
-
-      {/* quick commands */}
-      <div className="flex flex-wrap gap-1.5 border-t border-border px-5 py-3 sm:px-8">
-        {QUICK.map((q) => (
-          <button
-            key={q}
-            type="button"
-            onClick={() => {
-              exec(q);
-              inputRef.current?.focus();
-            }}
-            className="rounded-md border border-border px-2 py-0.5 text-[11px] text-muted transition-colors hover:border-accent/50 hover:text-accent"
+      ) : (
+        <>
+          {/* output + inline prompt */}
+          <div
+            ref={bodyRef}
+            className="flex-1 space-y-0.5 overflow-y-auto p-5 leading-relaxed sm:p-8"
+            onClick={() => inputRef.current?.focus()}
           >
-            {q}
-          </button>
-        ))}
-      </div>
+            {history.map((l, i) => (
+              <LineView key={i} l={l} />
+            ))}
+            <div className="flex items-center">
+              <span className="select-none whitespace-nowrap">
+                <span className="text-success">{USER}</span>
+                <span className="text-muted">:~$</span>
+              </span>
+              <input
+                ref={inputRef}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={onKeyDown}
+                aria-label="Terminal input"
+                spellCheck={false}
+                autoComplete="off"
+                className="ml-2 min-w-0 flex-1 bg-transparent text-foreground caret-accent outline-none"
+              />
+            </div>
+          </div>
+
+          {/* quick commands */}
+          <div className="flex flex-wrap gap-1.5 border-t border-border px-5 py-3 sm:px-8">
+            {QUICK.map((q) => (
+              <button
+                key={q}
+                type="button"
+                onClick={() => {
+                  exec(q);
+                  inputRef.current?.focus();
+                }}
+                className="rounded-md border border-border px-2 py-0.5 text-[11px] text-muted transition-colors hover:border-accent/50 hover:text-accent"
+              >
+                {q}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }
