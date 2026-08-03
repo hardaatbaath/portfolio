@@ -1,7 +1,8 @@
 "use client";
 
-import { ArrowRight, FileText, GraduationCap } from "lucide-react";
+import { ArrowRight, FileText, GraduationCap, NotebookPen } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import { identity, nav, socials } from "@/site.config";
 import { cn } from "@/lib/utils";
 import {
@@ -28,18 +29,30 @@ export function CommandPalette() {
   const [cursor, setCursor] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const pathname = usePathname();
+
   const go = useCallback((href: string, external = false) => {
     setOpen(false);
     if (external) window.open(href, "_blank", "noopener,noreferrer");
-    else window.location.hash = href;
+    else if (href.startsWith("/")) window.location.assign(href); // route (or /#hash)
+    else window.location.hash = href; // in-page hash on the current route
   }, []);
 
   const items = useMemo<Item[]>(() => {
+    const isHome = pathname === "/";
     const sections: Item[] = nav.map((n) => ({
       label: n.label,
       group: "Go to",
-      icon: <ArrowRight className="h-4 w-4" aria-hidden />,
-      run: () => go(`#${n.id}`),
+      keywords: n.href ? "notes papers reading" : undefined,
+      icon: n.href ? (
+        <NotebookPen className="h-4 w-4" aria-hidden />
+      ) : (
+        <ArrowRight className="h-4 w-4" aria-hidden />
+      ),
+      run: () =>
+        n.href
+          ? go(n.href)
+          : go(isHome ? `#${n.id}` : `/#${n.id}`),
     }));
     const links: Item[] = [
       { label: "GitHub", group: "Links", icon: <GithubIcon className="h-4 w-4" aria-hidden />, run: () => go(socials.github, true) },
@@ -53,7 +66,7 @@ export function CommandPalette() {
       { label: "Résumé", group: "Links", keywords: "cv", icon: <FileText className="h-4 w-4" aria-hidden />, run: () => go(identity.resumeUrl, true) },
     ];
     return [...sections, ...links];
-  }, [go]);
+  }, [go, pathname]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();

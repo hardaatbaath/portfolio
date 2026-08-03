@@ -1,6 +1,8 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Menu, Search, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { identity, nav } from "@/site.config";
@@ -11,7 +13,26 @@ import { ThemeToggle } from "./theme-toggle";
 import { TerminalButton } from "./terminal";
 import { OPEN_PALETTE_EVENT } from "./command-palette";
 
-const NAV_IDS = nav.map((n) => n.id);
+// Scroll-spy only tracks in-page sections, not route links (e.g. /notes).
+const NAV_IDS = nav.filter((n) => !n.href).map((n) => n.id);
+
+const linkClass = (isActive: boolean) =>
+  cn(
+    "group relative flex items-center rounded-lg px-3 py-2 text-sm transition-colors",
+    isActive ? "text-foreground" : "text-muted hover:text-foreground",
+  );
+
+function ActiveBar({ isActive }: { isActive: boolean }) {
+  return (
+    <span
+      aria-hidden
+      className={cn(
+        "absolute left-0 h-4 w-0.5 rounded-full bg-accent transition-all duration-200",
+        isActive ? "opacity-100" : "opacity-0",
+      )}
+    />
+  );
+}
 
 function NavList({
   active,
@@ -22,33 +43,44 @@ function NavList({
   onSelect: (id: string) => void;
   onNavigate?: () => void;
 }) {
+  const pathname = usePathname();
+  const isHome = pathname === "/";
+
   return (
     <ul className="space-y-0.5">
       {nav.map((item) => {
-        const isActive = active === item.id;
+        // Route links (e.g. /notes) — active when on that route.
+        if (item.href) {
+          const isActive = pathname.startsWith(item.href);
+          return (
+            <li key={item.id}>
+              <Link
+                href={item.href}
+                onClick={() => onNavigate?.()}
+                aria-current={isActive ? "page" : undefined}
+                className={linkClass(isActive)}
+              >
+                <ActiveBar isActive={isActive} />
+                {item.label}
+              </Link>
+            </li>
+          );
+        }
+
+        // In-page section links — hash on home, route-to-home elsewhere.
+        const isActive = isHome && active === item.id;
         return (
           <li key={item.id}>
             <a
-              href={`#${item.id}`}
+              href={isHome ? `#${item.id}` : `/#${item.id}`}
               onClick={() => {
-                onSelect(item.id);
+                if (isHome) onSelect(item.id);
                 onNavigate?.();
               }}
               aria-current={isActive ? "location" : undefined}
-              className={cn(
-                "group relative flex items-center rounded-lg px-3 py-2 text-sm transition-colors",
-                isActive
-                  ? "text-foreground"
-                  : "text-muted hover:text-foreground",
-              )}
+              className={linkClass(isActive)}
             >
-              <span
-                aria-hidden
-                className={cn(
-                  "absolute left-0 h-4 w-0.5 rounded-full bg-accent transition-all duration-200",
-                  isActive ? "opacity-100" : "opacity-0",
-                )}
-              />
+              <ActiveBar isActive={isActive} />
               {item.label}
             </a>
           </li>

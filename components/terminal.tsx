@@ -95,10 +95,10 @@ const INLINE: Record<string, () => Line[]> = {
   "beyond-code": () => [{ t: `reflections → ${socials.substackUrl}`, k: "link", href: socials.substackUrl }],
 };
 
-const SECTION_NAMES = [...Object.keys(PAGER), "about", "blogs", "beyond-code", "contact"];
+const SECTION_NAMES = [...Object.keys(PAGER), "about", "blogs", "beyond-code", "notes", "contact"];
 const COMMANDS = [
   "help", "about", "whoami", "ls", "cd", ...Object.keys(PAGER), "blogs",
-  "beyond-code", "contact", "socials", "stack", "now", "resume", "theme", "clear", "exit",
+  "beyond-code", "notes", "contact", "socials", "stack", "now", "resume", "theme", "clear", "exit",
 ];
 const QUICK = ["help", "ls", "projects", "milestones", "timeline", "exit"];
 
@@ -222,7 +222,10 @@ export function TerminalMode() {
 
     const resolve = (key: string) => {
       const norm = key.toLowerCase().replace(/^~\/?|\/$/g, "");
-      if (PAGER[norm]) toPage = { title: PAGER[norm].title, lines: PAGER[norm].fn() };
+      if (norm === "notes") {
+        out.push({ t: "→ opening notes…", k: "sys" });
+        window.location.href = "/notes";
+      } else if (PAGER[norm]) toPage = { title: PAGER[norm].title, lines: PAGER[norm].fn() };
       else if (INLINE[norm]) out.push(...INLINE[norm]());
       else if (norm === "" || norm === "overview") out.push(...aboutLines());
       else say(`no such section: ${key} — try \`ls\``);
@@ -232,7 +235,7 @@ export function TerminalMode() {
       case "":
         break;
       case "help":
-        say("about · ls · projects · milestones · timeline · reading · blogs · beyond-code · contact · socials · stack · now · resume · theme · clear · exit");
+        say("about · ls · projects · milestones · timeline · reading · blogs · beyond-code · notes · contact · socials · stack · now · resume · theme · clear · exit");
         break;
       case "about":
       case "whoami":
@@ -251,6 +254,7 @@ export function TerminalMode() {
       case "reading":
       case "blogs":
       case "beyond-code":
+      case "notes":
       case "contact":
       case "socials":
         resolve(cmd);
