@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { NoteMeta, NoteStatus } from "@/lib/notes";
 import { Reveal } from "../ui/reveal";
@@ -51,20 +52,44 @@ export function NotesIndex({
 }) {
   const [status, setStatus] = useState<StatusFilter>("all");
   const [tag, setTag] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
 
-  const filtered = useMemo(
-    () =>
-      notes.filter(
-        (n) =>
-          (status === "all" || n.status === status) &&
-          (tag === null || n.tags.includes(tag)),
-      ),
-    [notes, status, tag],
-  );
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return notes.filter((n) => {
+      if (status !== "all" && n.status !== status) return false;
+      if (tag !== null && !n.tags.includes(tag)) return false;
+      if (!q) return true;
+      const haystack = [
+        n.title,
+        n.summary ?? "",
+        n.authors ?? "",
+        n.venue ?? "",
+        n.tags.join(" "),
+      ]
+        .join(" ")
+        .toLowerCase();
+      return haystack.includes(q);
+    });
+  }, [notes, status, tag, query]);
 
   return (
     <div>
       <div className="flex flex-col gap-4 border-b border-border pb-6">
+        <div className="relative">
+          <Search
+            className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted"
+            aria-hidden
+          />
+          <input
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search notes by title, author, or tag…"
+            aria-label="Search notes"
+            className="w-full rounded-lg border border-border bg-background/50 py-2 pl-9 pr-3 text-sm text-foreground placeholder:text-muted focus:border-accent/40 focus:outline-none"
+          />
+        </div>
         <div className="flex flex-wrap items-center gap-2">
           {STATUS_FILTERS.map((f) => (
             <Chip
