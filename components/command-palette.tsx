@@ -1,8 +1,11 @@
 "use client";
 
-import { ArrowRight, FileText, GraduationCap } from "lucide-react";
+import { ArrowRight, FileText, GraduationCap, NotebookPen } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import { identity, nav, socials } from "@/site.config";
+
+export type PaletteNote = { slug: string; title: string; keywords?: string };
 import { cn } from "@/lib/utils";
 import {
   DevtoIcon,
@@ -22,24 +25,36 @@ type Item = {
   run: () => void;
 };
 
-export function CommandPalette() {
+export function CommandPalette({ notes = [] }: { notes?: PaletteNote[] }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [cursor, setCursor] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const pathname = usePathname();
+
   const go = useCallback((href: string, external = false) => {
     setOpen(false);
     if (external) window.open(href, "_blank", "noopener,noreferrer");
-    else window.location.hash = href;
+    else if (href.startsWith("/")) window.location.assign(href); // route (or /#hash)
+    else window.location.hash = href; // in-page hash on the current route
   }, []);
 
   const items = useMemo<Item[]>(() => {
+    const isHome = pathname === "/";
     const sections: Item[] = nav.map((n) => ({
       label: n.label,
       group: "Go to",
       icon: <ArrowRight className="h-4 w-4" aria-hidden />,
-      run: () => go(`#${n.id}`),
+      // In-page hash on home; route back to home + hash from other pages.
+      run: () => go(n.href ?? (isHome ? `#${n.id}` : `/#${n.id}`)),
+    }));
+    const noteItems: Item[] = notes.map((note) => ({
+      label: note.title,
+      group: "Notes",
+      keywords: note.keywords,
+      icon: <NotebookPen className="h-4 w-4" aria-hidden />,
+      run: () => go(`/notes/${note.slug}`),
     }));
     const links: Item[] = [
       { label: "GitHub", group: "Links", icon: <GithubIcon className="h-4 w-4" aria-hidden />, run: () => go(socials.github, true) },
@@ -52,8 +67,8 @@ export function CommandPalette() {
       { label: "Substack", group: "Links", keywords: "reflections essays", icon: <SubstackIcon className="h-4 w-4" aria-hidden />, run: () => go(socials.substackUrl, true) },
       { label: "Résumé", group: "Links", keywords: "cv", icon: <FileText className="h-4 w-4" aria-hidden />, run: () => go(identity.resumeUrl, true) },
     ];
-    return [...sections, ...links];
-  }, [go]);
+    return [...sections, ...noteItems, ...links];
+  }, [go, pathname, notes]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();

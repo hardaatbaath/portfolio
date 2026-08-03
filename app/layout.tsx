@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { identity, socials } from "@/site.config";
+import { getAllNotes } from "@/lib/notes";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Navigation } from "@/components/navigation";
 import { CommandPalette } from "@/components/command-palette";
@@ -71,6 +72,12 @@ const personJsonLd = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const paletteNotes = getAllNotes().map((n) => ({
+    slug: n.slug,
+    title: n.title,
+    keywords: [...n.tags, n.authors ?? "", "notes paper"].join(" "),
+  }));
+
   return (
     <html
       lang="en"
@@ -95,7 +102,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <TerminalButton />
             <ThemeToggle />
           </div>
-          <CommandPalette />
+          <CommandPalette notes={paletteNotes} />
           <TerminalMode />
           <div className="lg:pl-72">
             <main className="mx-auto max-w-4xl px-6 pt-20 md:px-10 lg:pt-0">

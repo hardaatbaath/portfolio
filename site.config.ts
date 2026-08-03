@@ -47,18 +47,23 @@ export const analytics = {
 } as const;
 
 // --- Navigation / narrative order -------------------------------------------
-// Each entry is a section on the single page. `id` is the URL hash + scroll
-// anchor. Order here === order on the page === order in the sidebar.
-export const nav = [
+// Each entry is a section on the single page (`id` = URL hash + scroll anchor).
+// An optional `href` turns an entry into a route link instead; unused for now —
+// section links route back to `/#id` from other pages automatically. Order here
+// === order on the page === order in the sidebar.
+export type NavItem = { id: string; label: string; href?: string };
+
+export const nav: readonly NavItem[] = [
   { id: "overview", label: "Overview" },
   { id: "projects", label: "Projects" },
   { id: "recognition", label: "Milestones" },
   { id: "writing", label: "Blogs" },
   { id: "thinking", label: "Beyond Code" },
+  { id: "notes", label: "Notes" },
   { id: "reading", label: "Reading" },
   { id: "timeline", label: "Timeline" },
   { id: "contact", label: "Contact" },
-] as const;
+];
 
 // How many project cards to show before the "More on GitHub" link.
 export const featuredProjectCount = 4;
