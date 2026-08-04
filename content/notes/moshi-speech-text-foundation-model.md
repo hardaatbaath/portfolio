@@ -9,82 +9,138 @@ status: summarized
 summary: "A full-duplex speech-to-speech LLM: a text-LM backbone generates audio-codec tokens for both speakers in parallel, hitting ~200ms real-world latency."
 ---
 
-Conventional voice assistants chain separate models — voice-activity detection →
-ASR → a text dialogue model → TTS. That pipeline is latency-heavy, loses
-non-linguistic signal (emotion, tone), and forces rigid turn-taking. **Moshi**
-collapses the whole stack into a single **speech-to-speech** model that listens
-and speaks *at the same time*.
+## 1. At a glance
 
-> [!key] The core idea
-> Treat spoken dialogue as one generative modelling problem over discrete audio
-> tokens, with **both** the model's and the user's speech modelled as parallel
-> streams — so there are no explicit turn boundaries, and interruptions and
-> overlapping speech just fall out of the architecture.
+**What it's about.** Voice assistants normally chain four models — voice-activity
+detection → speech recognition → a text chatbot → text-to-speech. That's slow,
+throws away tone/emotion, and enforces rigid "you talk, then I talk" turns. Moshi
+replaces the whole chain with a **single speech-to-speech model** that listens and
+speaks at the same time (full-duplex), in real time.
 
-## Core contributions (as claimed by the authors)
+**What they used** *(each explained in §2)*:
 
-1. **Mimi**, a streaming neural audio codec that jointly encodes *semantic* and
-   *acoustic* tokens at a very low frame rate.
-2. **Moshi**, the first real-time **full-duplex** spoken LLM, built on a text-LM
-   backbone that generates Mimi tokens.
-3. **Inner Monologue** — predicting time-aligned text as a prefix to audio,
-   which sharply improves linguistic quality and unlocks zero-shot streaming
-   ASR/TTS.
+- **Mimi** — their own streaming neural audio codec (turns audio ↔ discrete tokens).
+- **WavLM** — a pretrained speech model, used to inject *meaning* into codec tokens.
+- **Helium** — their 7B-parameter Transformer LLM, the text/reasoning backbone.
+- **RQ-Transformer** — a two-level decoder that emits many tokens per time step.
+- **Inner Monologue** — generating aligned text *before* the audio for each frame.
 
-## Method
+**Achieved ✓**
 
-**Mimi codec.** Runs at **12.5 Hz / 1.1 kbps** with **8 codebooks** (2048
-centroids each). The first quantizer level is *distilled from WavLM* to carry
-semantic content; the remaining 7 levels are a residual VQ for acoustics. It's
-causal, so it streams with ~80 ms initial latency.
+- First real-time **full-duplex** spoken LLM; **160 ms** theoretical / **200 ms**
+  practical latency.
+- Handles interruptions and overlapping speech with no explicit turn segmentation.
+- Preserves non-linguistic signal (emotion, non-speech sounds); free zero-shot
+  streaming ASR/TTS as a side effect of the design.
 
-**Helium backbone.** A **7B**-parameter Transformer (RMSNorm, RoPE,
-FlashAttention, 32 layers, 4096 context) pre-trained on **2.1T** tokens of
-English text — the same attention machinery as [[attention-is-all-you-need]],
-repurposed to emit audio tokens.
+**Didn't ✗**
 
-**RQ-Transformer + multi-stream.** A two-stage decoder: a large *Temporal*
-Transformer over time steps, and a small *Depth* Transformer that predicts the
-K sub-tokens within each step. Each frame carries **K = 17 streams**:
+- English-only backbone (Helium is trained on English) — no multilingual claims.
+- One voice/persona per trained model; not arbitrary zero-shot voice cloning.
+- Very low-bitrate audio (1.1 kbps) — fidelity is a deliberate trade for latency,
+  and robustness to noisy/far-field audio isn't really established.
 
-```text
-[ 1 text ] + [ 8 audio: Moshi ] + [ 8 audio: user ]   per 12.5 Hz frame
-             └── acoustic delay τ = 1 step ──┘
-```
+## 2. Building blocks — the FYI layer
 
-Modelling the user's stream too is what makes it full-duplex — Moshi is always
-"hearing" while it speaks.
+> [!warning] Background — general knowledge, not specific to this paper
+> This section explains the pieces so the rest reads easily. The paper-specific
+> claims are in §3–§4.
 
-**Inner Monologue.** Text tokens are aligned to the 12.5 Hz grid via Whisper
-word timestamps (with PAD/EPAD tokens between words) and generated *before* the
-audio for each frame. Varying the text↔audio delay yields streaming ASR or TTS
-for free.
+**Neural audio codec + Residual Vector Quantization (RVQ).** A codec compresses a
+waveform into a small stream of discrete integers ("tokens") and back. *Vector
+quantization* snaps each short audio chunk to the nearest entry in a learned
+codebook; **residual** VQ stacks several codebooks, each correcting the leftover
+error of the previous one — so more codebooks = higher fidelity. This is what lets
+an LLM "speak": it just predicts these audio tokens like words.
 
-## Key results
+**Mimi (this paper's codec).** Runs at **12.5 Hz, 1.1 kbps, 8 codebooks** (2048
+entries each) and is *causal*, so it streams. Its trick: the **first** codebook is
+distilled to carry *semantic* content, while the other 7 carry *acoustic* detail —
+one stream that is both meaningful and reconstructable.
+
+**WavLM.** A large self-supervised speech encoder whose representations capture
+linguistic/semantic structure. Moshi *distills* WavLM into Mimi's first token so
+those tokens aren't just "how it sounds" but "what was said."
+
+**Transformer LLM / Helium.** The Transformer is the standard attention-based
+sequence model (see [[attention-is-all-you-need]]); **Helium** is Kyutai's **7B**
+instance (RMSNorm, RoPE, FlashAttention, 32 layers, 4096 context) pretrained on
+**2.1T** English tokens. It supplies the reasoning/knowledge — Moshi teaches it to
+emit audio tokens instead of only text.
+
+**Full-duplex.** Both parties can transmit at once (like a phone call, unlike a
+walkie-talkie). Achieving it means the model must keep *modelling the user's audio
+even while generating its own*.
+
+## 3. How it works — architecture & method
+
+**Big idea.** Model a conversation as **one token stream containing both speakers
+at once**, generated by an LLM over Mimi tokens. If the model always predicts the
+user's stream too, it is inherently "listening while speaking" — full-duplex with
+no turn logic bolted on.
+
+**The pipeline, step by step:**
+
+1. **Encode audio → tokens.**
+   *Input:* raw mic waveform. *Do:* Mimi encodes it to 12.5 Hz tokens (1 semantic +
+   7 acoustic per frame). *Output:* discrete token frames. *Intuition:* discretizing
+   audio turns "speak" into "predict the next token," so an LLM can do it.
+
+2. **Lay out parallel streams.**
+   *Input:* Moshi's own audio tokens + the user's audio tokens + a text stream.
+   *Do:* stack them into **K = 17 sub-streams per frame** (1 text + 8 Moshi audio +
+   8 user audio). *Output:* one multi-stream sequence. *Intuition:* co-modelling the
+   user's stream is exactly what makes it full-duplex.
+
+   ```text
+   per 12.5 Hz frame:  [ 1 text ] + [ 8 audio: Moshi ] + [ 8 audio: user ]
+                                     └── acoustic delay τ = 1 step ──┘
+   ```
+
+3. **Inner Monologue: think in text first.**
+   *Input:* the frame's aligned word (via Whisper timestamps, with PAD/EPAD tokens).
+   *Do:* generate the **text token before** that frame's audio tokens. *Output:*
+   text-then-audio per frame. *Intuition:* letting the model "say it in text" first
+   borrows Helium's language competence and sharply improves what it then speaks.
+
+4. **Generate with the RQ-Transformer.**
+   *Input:* the stream so far. *Do:* a large **Temporal** Transformer models across
+   time steps; a small **Depth** Transformer then predicts the 17 sub-tokens *within*
+   a step. *Output:* next frame's tokens. *Intuition:* splits the hard "many tokens
+   per step" problem into cheap-across-time + cheap-within-step.
+
+5. **Decode tokens → audio.**
+   *Input:* Moshi's predicted audio tokens. *Do:* Mimi decodes them to a waveform,
+   streaming. *Output:* spoken reply. *Intuition:* the inverse of step 1, low-latency.
+
+> [!key] Ground reality vs. the clean story
+> "Just predict both speakers" hides three tricks that actually make it work: the
+> **semantic-token distillation** (so audio tokens carry meaning), the **acoustic
+> delay τ = 1** between text and audio (stabilizes generation), and **Inner
+> Monologue** (text-as-prefix) — without which linguistic quality drops.
+
+## 4. Results & conclusions
 
 | Aspect | Reported |
 | --- | --- |
 | Latency | **160 ms** theoretical, **200 ms** practical |
-| Helium (text) | 79.6% ARC-easy · 54.3% MMLU |
-| Spoken QA | Authors report state-of-the-art among speech-text models |
+| Helium (text backbone) | 79.6% ARC-easy · 54.3% MMLU |
+| Spoken QA | Authors claim state-of-the-art among speech-text models |
 | Release | Code + weights at `github.com/kyutai-labs/moshi` |
 
-## Limitations & open questions
+**Conclusion (authors).** A single generative model over audio tokens can do
+real-time, full-duplex spoken dialogue end-to-end, and the semantic/acoustic token
+split plus Inner Monologue are what keep quality high at very low bitrate.
 
-- English-only backbone (2.1T English tokens) — multilingual behaviour is out of
-  scope here.
-- Full-duplex quality leans heavily on Mimi's low-bitrate reconstruction; the
-  semantic/acoustic split is elegant but under-ablated for far-field / noisy audio.
+## 5. Questions worth asking
 
-> [!warning] Reviewer note
-> The 200 ms figure is end-to-end model latency, not a product-level number
-> (network, endpointing, and client buffering sit on top). Worth pinning down
-> before quoting it as "conversational latency."
-
-## Why I care
-
-This is the cleanest existing blueprint for a low-latency, emotion-preserving
-speech agent — directly relevant to the speech + dialogue systems I work on.
-The Mimi semantic-token trick is the piece I want to re-read most; contrast its
-"knowledge in the tokens" framing with the external-memory approach in
-[[retrieval-augmented-generation]].
+- How much of the quality is Helium's 7B language prior vs. the audio modelling —
+  i.e. how far can you shrink the backbone before dialogue quality falls off?
+- The 200 ms is *model* latency; where does real product latency (network,
+  endpointing, client buffering) actually land?
+- How robust is 1.1 kbps Mimi to noisy, far-field, or multi-speaker input beyond
+  the clean setup?
+- Inner Monologue leans on Whisper alignments — how brittle is training to timestamp
+  errors, and does it break for languages Whisper aligns poorly?
+- Is "knowledge lives in the tokens" here fundamentally at odds with, or
+  complementary to, external-memory approaches like [[retrieval-augmented-generation]]?
