@@ -9,49 +9,122 @@ status: reading
 summary: "Pairs a parametric seq2seq model with a non-parametric retriever so knowledge lives in an index you can edit, not just in the weights."
 ---
 
-**RAG** couples a generator (a [[attention-is-all-you-need|Transformer]] seq2seq
-model) with a **retriever** over a dense vector index of documents. Instead of
-forcing every fact into the weights, the model looks things up at inference time
-and conditions its output on what it finds.
+## 1. At a glance
 
-> [!key] The core bet
-> Split knowledge into two stores: *parametric* memory (the weights, good at
-> fluency and reasoning) and *non-parametric* memory (a document index, good at
-> facts). You can swap the index without retraining the model.
+**What it's about.** LLMs store facts in their weights, but that knowledge is hard
+to *update*, hard to *attribute*, and prone to hallucination. **RAG** gives the
+model a second memory: a searchable document index. At inference it retrieves
+relevant passages and conditions generation on them — so facts live in an index you
+can swap out, not only in frozen parameters.
 
-## How it works
+**What they used** *(each explained in §2)*:
 
-1. Encode the query with a question encoder.
-2. Retrieve the top-$k$ documents by maximum inner-product search (MIPS) against
-   a pre-encoded passage index.
-3. Condition the generator on the query **and** the retrieved passages.
+- **BART-large** (400M) — the seq2seq **generator**.
+- **DPR** (Dense Passage Retrieval) — the dual-BERT **retriever**.
+- **Wikipedia index** — 21M 100-word passages, searched by **MIPS via FAISS**.
+- Two variants: **RAG-Sequence** and **RAG-Token**.
 
-The paper marginalises over retrieved documents two ways:
+**Achieved ✓**
 
-- **RAG-Sequence** — use the *same* $k$ documents to generate the whole output.
-- **RAG-Token** — allow a *different* document to drive each token.
+- New SOTA on several open-domain QA benchmarks (e.g. **Natural Questions 44.5 EM**,
+  beating DPR's 41.5), trained end-to-end with **no gold-document supervision**.
+- More factual, more specific generation (Jeopardy question generation: judged more
+  factual **42.7%** vs BART's **7.1%**).
+- Knowledge is editable: swap the index and the model's "facts" change without
+  retraining.
+
+**Didn't ✗**
+
+- End-to-end quality is bottlenecked by **retrieval** — if the right passage isn't in
+  the top-k, the generator can't recover it.
+- The **document encoder is frozen** (only the query side is fine-tuned) to avoid
+  re-indexing 21M passages — a pragmatic compromise, not full joint training.
+- Competitive but **not** universally SOTA (e.g. close to DPR on TriviaQA, not ahead).
+
+## 2. Building blocks — the FYI layer
+
+> [!warning] Background — general knowledge, not specific to this paper
+> The pieces first; the paper's own method is in §3–§4.
+
+**Parametric vs. non-parametric memory.** *Parametric* = knowledge baked into model
+weights (fluent, but static and opaque). *Non-parametric* = an external store you can
+read from and edit (a document index). RAG's whole thesis is to combine both.
+
+**Seq2seq generator (BART).** A Transformer encoder-decoder (same machinery as
+[[attention-is-all-you-need]]) pretrained as a denoising autoencoder; good at fluent
+conditional generation. Here it writes the answer given query + retrieved text.
+
+**DPR — Dense Passage Retrieval.** Two BERT encoders: one embeds the **question**,
+one embeds each **passage**, into a shared vector space so that relevant Q–passage
+pairs have high inner product. Replaces sparse keyword search (BM25) with *semantic*
+search.
+
+**MIPS / FAISS.** Maximum Inner-Product Search finds the nearest vectors to the query
+embedding; FAISS does it approximately (HNSW) so retrieval over 21M passages is fast.
+
+## 3. How it works — architecture & method
+
+**Big idea.** Treat the retrieved document $z$ as a **latent variable** and
+marginalise over the top-k documents, training the retriever and generator *jointly*
+on just the final answer — the model learns which documents help without ever being
+told the "right" one.
+
+**The pipeline, step by step:**
+
+1. **Encode the query.**
+   *Input:* the question $x$. *Do:* DPR question encoder → a dense vector.
+   *Output:* query embedding. *Intuition:* put the question in the same space as the
+   passages so "relevant" = "nearby."
+
+2. **Retrieve top-k.**
+   *Input:* query embedding. *Do:* MIPS over the pre-encoded Wikipedia index (FAISS).
+   *Output:* top-k passages $z_1..z_k$. *Intuition:* pull in candidate evidence.
+
+3. **Generate, conditioned on evidence.**
+   *Input:* query + each retrieved passage. *Do:* BART generates the answer,
+   conditioned on $x$ and $z$. *Output:* answer tokens. *Intuition:* let the model
+   *read* the facts rather than recall them.
+
+4. **Marginalise over documents.** Two flavours:
 
 $$
-p_{\text{RAG-Token}}(y \mid x) = \prod_{i}^{N} \sum_{z \in \text{top-}k} p_\eta(z \mid x)\, p_\theta(y_i \mid x, z, y_{1:i-1})
+p_{\text{RAG-Seq}}(y\mid x) \approx \sum_{z\in\text{top-}k} p_\eta(z\mid x)\,p_\theta(y\mid x,z)
+\quad\quad
+p_{\text{RAG-Tok}}(y\mid x) \approx \prod_i \sum_{z\in\text{top-}k} p_\eta(z\mid x)\,p_\theta(y_i\mid x,z,y_{<i})
 $$
 
-```python
-# Sketch: retrieve then generate.
-docs = index.search(encode_query(x), k=5)     # non-parametric memory
-ctx = concat(x, docs)
-y = generator.generate(ctx)                     # parametric memory
-```
+   *Intuition:* **RAG-Sequence** commits to one document for the whole answer;
+   **RAG-Token** can lean on a different document per token (better when an answer
+   fuses facts from several passages).
 
-## Why I care
+> [!key] Ground reality vs. the clean story
+> "Train it end-to-end" hides the key compromise: back-propagating into the
+> **document** encoder would require **re-embedding and re-indexing all 21M
+> passages** every update — infeasible. So they **freeze the document encoder** and
+> only fine-tune the query encoder + generator. Retrieval is a latent variable, but a
+> *mostly frozen* one.
 
-This is the shape of the multilingual RAG systems I build at Nurix — the failure
-modes in practice are almost always *retrieval* failures, not generation ones.
+## 4. Results & conclusions
 
-> [!warning] Open question
-> Retrieval quality dominates end-to-end quality, yet it's trained with a much
-> weaker signal than the generator. How much of the gap closes with better
-> negatives vs. joint training of retriever + generator?
+- **Natural Questions:** RAG-Sequence **44.5 EM** vs DPR 41.5 — new SOTA at the time.
+- Set new SOTA on additional open-domain QA benchmarks (WebQuestions, CuratedTrec);
+  competitive with DPR on TriviaQA. *(Exact per-dataset figures vary by metric —
+  verify against Table 1 before quoting.)*
+- **Generation:** markedly more factual/specific than BART on Jeopardy question
+  generation (human eval).
 
-- The attention mechanism the generator relies on is the same one from
-  [[attention-is-all-you-need]].
-- Next: read the FiD paper and compare how it fuses passages against RAG-Token.
+**Conclusion (authors).** Combining parametric (BART) and non-parametric (Wikipedia
+index) memory, trained end-to-end, beats closed-book models on knowledge-intensive
+tasks while making knowledge updatable and answers more grounded.
+
+## 5. Questions worth asking
+
+- Retrieval is the ceiling — how much do better retrievers (hard negatives, joint
+  retriever+generator training) close the gap vs. the frozen-index compromise here?
+- RAG-Token vs. RAG-Sequence: when is per-token document switching worth the extra
+  cost, and how often does it actually switch?
+- How does this scale as the generator grows to modern LLM sizes — does retrieval
+  still help once parametric memory is huge?
+- The generator relies on the same attention machinery as
+  [[attention-is-all-you-need]]; contrast "knowledge in an editable index" here with
+  "knowledge in the audio tokens" in [[moshi-speech-text-foundation-model]].

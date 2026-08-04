@@ -9,57 +9,123 @@ status: summarized
 summary: "The paper that replaced recurrence with pure attention and became the backbone of modern LLMs."
 ---
 
-The **Transformer** discards recurrence and convolutions entirely and builds
-sequence modelling out of a single primitive: **self-attention**. That one
-decision is why we can train models the size of today's LLMs — attention
-parallelises across the sequence, where an RNN is forced to march one step at a
-time.
+## 1. At a glance
 
-> [!key] Why it mattered
-> Recurrence made the computation *inherently sequential*, capping how much you
-> could parallelise per training example. Removing it turned sequence modelling
-> into a problem you can throw GPUs at.
+**What it's about.** Sequence models (translation, etc.) were built on RNNs, which
+process a sentence one token at a time — inherently sequential, so you can't
+parallelise within an example, and long-range dependencies decay. This paper
+proposes the **Transformer**: drop recurrence and convolutions entirely and build
+the model out of **attention** alone, so every position can look at every other
+position in one parallel step.
 
-## Scaled dot-product attention
+**What they used** *(each explained in §2)*:
 
-Each token emits a query, and every token exposes a key and a value. The output
-for a token is a weighted average of all values, where the weights come from how
-well that token's query matches each key:
+- **Self-attention** (scaled dot-product) — the one core operation.
+- **Multi-head attention** — 8 attention functions in parallel.
+- **Encoder–decoder stack** — N = 6 layers each.
+- **Positional encodings** (sinusoidal), **position-wise FFN**, **residual + LayerNorm**.
+
+**Achieved ✓**
+
+- New SOTA on WMT-2014: **28.4 BLEU** EN→DE (+2.0 over prior best ensemble),
+  **41.8 BLEU** EN→FR — at "a small fraction of the training cost."
+- Fully parallel training; base model trains in **12 h on 8 P100 GPUs**.
+
+**Didn't ✗**
+
+- Self-attention is **O(n²)** in sequence length — expensive for long sequences
+  (the paper flags this; long-context is left to future work).
+- Demonstrated on machine translation + parsing only; not yet the general
+  pretraining recipe that BERT/GPT would later make it.
+
+## 2. Building blocks — the FYI layer
+
+> [!warning] Background — general knowledge, not specific to this paper
+> Context so §3 reads easily; the paper's own contributions are in §3–§4.
+
+**RNN / recurrence.** The prior default: read tokens left-to-right, carrying a
+hidden state. Because step *t* needs step *t-1*, training can't parallelise over
+positions, and gradients over long distances vanish. Removing this is the whole
+motivation.
+
+**Attention (query / key / value).** Each token forms a **query**; every token
+exposes a **key** and a **value**. The output for a token is a weighted average of
+all values, weighted by how well its query matches each key. Intuition: "look at
+the whole sentence and pull in whatever is relevant," in one step.
+
+**Word embeddings + positional encoding.** Tokens become vectors (embeddings).
+Since attention is order-agnostic (a bag of vectors), you must **add position
+information** back — here via fixed sinusoids of different frequencies.
+
+**Residual connections + LayerNorm.** Standard deep-net stabilizers:
+`LayerNorm(x + Sublayer(x))` keeps gradients healthy through many stacked layers.
+
+**BLEU.** The translation-quality metric (n-gram overlap with references); higher
+is better. Used for the headline results.
+
+## 3. How it works — architecture & method
+
+**Big idea.** If attention lets any position gather information from any other in a
+single operation, you don't need recurrence at all — stack attention + FFN blocks
+and you get a fully parallel, strong sequence model.
+
+**Scaled dot-product attention** is the primitive:
 
 $$
 \text{Attention}(Q, K, V) = \text{softmax}\!\left(\frac{QK^{\top}}{\sqrt{d_k}}\right)V
 $$
 
-The $\sqrt{d_k}$ term is easy to skip past but load-bearing: for large $d_k$ the
-dot products grow in magnitude, pushing softmax into regions with vanishing
-gradients. Dividing by $\sqrt{d_k}$ keeps the variance in check.
+**The pipeline, step by step:**
 
-```python
-import torch, torch.nn.functional as F
+1. **Embed + position.**
+   *Input:* token ids. *Do:* embed to `d_model = 512` vectors, add sinusoidal
+   positional encodings. *Output:* order-aware token vectors. *Intuition:* give the
+   model both *what* each token is and *where* it sits.
 
-def attention(q, k, v):
-    d_k = q.size(-1)
-    scores = q @ k.transpose(-2, -1) / d_k ** 0.5   # (…, T, T)
-    weights = F.softmax(scores, dim=-1)
-    return weights @ v                               # (…, T, d_v)
-```
+2. **Encoder (×6).**
+   *Input:* token vectors. *Do:* multi-head **self**-attention (every token attends
+   to all tokens) → position-wise FFN, each wrapped in residual+LayerNorm.
+   *Output:* context-rich encodings. *Intuition:* build a representation where each
+   token already "knows" the rest of the source.
 
-## Multi-head attention
+3. **Decoder (×6).**
+   *Input:* generated tokens so far + encoder output. *Do:* **masked** self-attention
+   (can't peek ahead) → **cross**-attention over encoder output → FFN.
+   *Output:* next-token distribution. *Intuition:* attend to what's been said and to
+   the source, then predict the next word.
 
-One attention function averages everything into a single representation. Running
-$h$ heads in parallel — each with its own learned projection — lets the model
-attend to different relationships at once (syntax in one head, coreference in
-another) and then concatenate the results.
+4. **Project → token.**
+   *Input:* decoder output. *Do:* linear + softmax over vocabulary. *Output:* next
+   token. *Intuition:* standard LM head.
 
-## What I keep coming back to
+> [!key] Ground reality vs. the clean story
+> Three details make "just use attention" actually work: the **√dₖ scaling** (large
+> `d_k` blows up dot products and flatlines softmax gradients — the paper's fix);
+> **multi-head** (one attention averages everything into one view; 8 heads let it
+> track several relations — syntax, coreference — at once); and the decoder
+> **causal mask** (so training can be parallel yet still autoregressive).
 
-- **Positional encodings** are the price of dropping recurrence: with no order
-  built in, you inject it via sinusoids (or, later, learned/rotary embeddings).
-- The encoder–decoder framing is now almost a footnote — decoder-only stacks
-  dominate — but the attention block itself is unchanged.
-- This is the direct ancestor of the retrieval systems I work on; see
-  [[retrieval-augmented-generation]] for where attention meets external memory.
+## 4. Results & conclusions
 
-> [!tip] Re-read prompt
-> Next pass: derive the gradient through softmax by hand and connect the
-> $\sqrt{d_k}$ scaling to it quantitatively.
+| Task (WMT-2014) | Model | BLEU |
+| --- | --- | --- |
+| EN→DE | Transformer (big) | **28.4** (prior best ensemble 26.36) |
+| EN→FR | Transformer (big) | **41.8** |
+
+Training: 8×P100; base 12 h, big 3.5 days — far cheaper than the RNN/CNN SOTA it beat.
+
+**Conclusion (authors).** Attention alone, stacked with FFNs, matches or beats
+recurrent/convolutional translation models while being dramatically more
+parallelisable — establishing the architecture the field has built on ever since.
+
+## 5. Questions worth asking
+
+- The O(n²) attention cost — how far can sequence length scale before it dominates,
+  and what approximations preserve quality? (The whole "efficient attention" line.)
+- How much of the win is *attention* vs. just *removing the sequential bottleneck*
+  (i.e. more compute per second)?
+- Sinusoidal vs. learned vs. rotary position encodings — which actually matters, and
+  when does length-extrapolation break?
+- This is the shared backbone of [[retrieval-augmented-generation]] and
+  [[moshi-speech-text-foundation-model]] — what changes when the "tokens" are
+  passages or audio instead of words?
