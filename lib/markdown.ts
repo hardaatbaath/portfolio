@@ -116,6 +116,27 @@ function rehypeCallouts() {
   };
 }
 
+/** rehype plugin: turn ```mermaid fences into <pre class="mermaid"> raw blocks
+ *  so Shiki skips them and the client Mermaid renderer can pick them up. */
+function rehypeMermaid() {
+  return (tree: any) => {
+    visit(tree, "element", (node: any) => {
+      if (node.tagName !== "pre") return;
+      const code = node.children?.[0];
+      if (!code || code.tagName !== "code") return;
+      const cls: string[] = Array.isArray(code.properties?.className)
+        ? code.properties.className
+        : [];
+      if (!cls.includes("language-mermaid")) return;
+      const src = (code.children ?? [])
+        .map((c: any) => (typeof c.value === "string" ? c.value : ""))
+        .join("");
+      node.properties = { className: ["mermaid"] };
+      node.children = [{ type: "text", value: src }];
+    });
+  };
+}
+
 const prettyCodeOptions: PrettyCodeOptions = {
   theme: { light: "github-light", dark: "github-dark-dimmed" },
   keepBackground: false,
@@ -135,6 +156,7 @@ export async function renderMarkdown(content: string): Promise<string> {
       properties: { className: ["heading-anchor"] },
     })
     .use(rehypeCallouts)
+    .use(rehypeMermaid)
     .use(rehypeKatex, { strict: false })
     .use(rehypePrettyCode, prettyCodeOptions)
     .use(rehypeStringify)
