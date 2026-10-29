@@ -19,25 +19,13 @@ export async function Reflections() {
       />
 
       {posts.length > 0 ? (
-        <>
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
-            {posts.map((post, i) => (
-              <Reveal key={post.url} delay={(i % 3) * 0.05}>
-                <PostCard post={post} />
-              </Reveal>
-            ))}
-          </div>
-          <Reveal className="mt-8">
-            <a
-              href={socials.substackUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={buttonVariants({ variant: "secondary" })}
-            >
-              More on Substack
-            </a>
-          </Reveal>
-        </>
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+          {posts.map((post, i) => (
+            <Reveal key={post.url} delay={(i % 3) * 0.05}>
+              <PostCard post={post} />
+            </Reveal>
+          ))}
+        </div>
       ) : (
         <EmptyFeed
           source="Substack"
@@ -45,6 +33,28 @@ export async function Reflections() {
           icon={<PenLine className="h-5 w-5" aria-hidden />}
         />
       )}
+
+      {/* Always show both CTAs — I post more Notes than long-form posts. */}
+      <Reveal className="mt-8 flex flex-wrap gap-3">
+        {posts.length > 0 && (
+          <a
+            href={socials.substackUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={buttonVariants({ variant: "secondary" })}
+          >
+            More on Substack
+          </a>
+        )}
+        <a
+          href={socials.substackNotesUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={buttonVariants({ variant: "secondary" })}
+        >
+          Read my notes
+        </a>
+      </Reveal>
     </Section>
   );
 }

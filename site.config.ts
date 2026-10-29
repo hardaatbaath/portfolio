@@ -39,6 +39,10 @@ export const socials = {
   devtoUrl: `https://dev.to/${process.env.NEXT_PUBLIC_DEVTO_USERNAME ?? "hardaatbaath"}`,
   substackUrl:
     process.env.NEXT_PUBLIC_SUBSTACK_URL ?? "https://hardaatbaath.substack.com",
+  // Substack Notes live on the author profile (the publication /notes path 404s).
+  substackNotesUrl:
+    process.env.NEXT_PUBLIC_SUBSTACK_NOTES_URL ??
+    "https://substack.com/@hardaatsinghbaath/notes",
 } as const;
 
 // Google Analytics measurement id (e.g. "G-XXXXXXX"). Empty = analytics off.
