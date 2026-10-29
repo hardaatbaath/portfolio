@@ -8,6 +8,7 @@ import { renderMarkdown } from "@/lib/markdown";
 import { formatMonthYear } from "@/lib/utils";
 import { identity } from "@/site.config";
 import { NoteStatusBadge } from "@/components/notes/note-status";
+import { Mermaid } from "@/components/notes/mermaid";
 import { Backlinks } from "@/components/notes/backlinks";
 import { Tag } from "@/components/ui/badge";
 import { Reveal } from "@/components/ui/reveal";
@@ -119,6 +120,7 @@ export default async function NotePage({
           dangerouslySetInnerHTML={{ __html: html }}
         />
       </Reveal>
+      <Mermaid />
 
       <Backlinks notes={backlinks} />
     </article>

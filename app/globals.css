@@ -338,6 +338,27 @@
   color: var(--shiki-dark);
 }
 
+/* Mermaid diagrams: raw source shows small/dim until the client renders SVG */
+.note-prose pre.mermaid {
+  background: none;
+  border: 0;
+  padding: 0.5rem 0;
+  margin: 1.6rem 0;
+  text-align: center;
+  overflow-x: auto;
+  font-size: 0.75rem;
+  color: var(--muted);
+  line-height: 1.4;
+}
+.note-prose pre.mermaid[data-processed] {
+  font-size: inherit;
+}
+.note-prose pre.mermaid svg {
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto;
+}
+
 /* KaTeX: let long display equations scroll instead of overflowing the page */
 .note-prose .katex-display {
   overflow-x: auto;
