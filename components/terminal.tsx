@@ -53,6 +53,9 @@ function milestonesLines(): Line[] {
 }
 function readingLines(): Line[] {
   return [
+    { t: "Math & ML", k: "head" },
+    ...reading.mlAndMath.map((b): Line => ({ t: `  - ${b}`, k: "out" })),
+    B(),
     { t: "Technical", k: "head" },
     ...reading.technical.map((b): Line => ({ t: `  - ${b}`, k: "out" })),
     B(),

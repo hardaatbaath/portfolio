@@ -185,8 +185,14 @@ export const reading = {
   technical: [
     "System Design Interview",
     "Designing Data-Intensive Applications",
-    "Naked Statistics",
     "Computer Systems: A Programmer's Perspective",
+  ],
+  mlAndMath: [
+    "Mathematics for Machine Learning — Deisenroth, Faisal & Ong",
+    "Deep Learning — Goodfellow, Bengio & Courville",
+    "Pattern Recognition and Machine Learning — Bishop",
+    "Probabilistic Machine Learning — Murphy",
+    "The Elements of Statistical Learning — Hastie, Tibshirani & Friedman",
   ],
   humanities: [
     "Humankind: A Hopeful History",

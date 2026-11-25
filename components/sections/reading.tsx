@@ -29,11 +29,14 @@ export function Reading() {
         title="On the shelf"
         description="What I'm reading across the two halves of the brain — no ratings, no reviews."
       />
-      <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
         <Reveal>
-          <Shelf title="Technical" books={reading.technical} />
+          <Shelf title="Math & ML" books={reading.mlAndMath} />
         </Reveal>
         <Reveal delay={0.05}>
+          <Shelf title="Technical" books={reading.technical} />
+        </Reveal>
+        <Reveal delay={0.1}>
           <Shelf title="Beyond Tech" books={reading.humanities} />
         </Reveal>
       </div>
